@@ -8,7 +8,7 @@ const CURRENT_YEAR = new Date().getFullYear()
 const GRAD_YEARS = Array.from({ length: 9 }, (_, i) => CURRENT_YEAR - 1 + i)
 
 const inputClass =
-  'w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30'
+  'w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30'
 
 export function RegisterPage() {
   const { register } = useAuth()
@@ -160,7 +160,7 @@ export function RegisterPage() {
             whileTap={{ scale: 0.98 }}
             type="submit"
             disabled={isSubmitting}
-            className="w-full rounded-lg bg-indigo-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
+            className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
           >
             {isSubmitting ? 'Creating account…' : 'Create account'}
           </motion.button>
@@ -168,7 +168,7 @@ export function RegisterPage() {
 
         <p className="mt-6 text-center text-sm text-slate-400">
           Already have an account?{' '}
-          <Link to="/login" className="font-medium text-indigo-400 hover:text-indigo-300">
+          <Link to="/login" className="font-medium text-emerald-400 hover:text-emerald-300">
             Sign in
           </Link>
         </p>

@@ -4,6 +4,7 @@ import { useMemo, useState } from 'react'
 import { getApplications } from '../api/applications'
 import { getResumes } from '../api/resumes'
 import { AppHeader } from '../components/AppHeader'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 import type { Application } from '../types/application'
 
 type Filter = 'all' | 'active' | 'offer' | 'rejected'
@@ -37,7 +38,7 @@ function HistoryRow({ application, resumeFilename }: { application: Application;
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span
-              className={`h-2 w-2 flex-shrink-0 rounded-full ${STATUS_DOT[application.status] ?? 'bg-indigo-400'}`}
+              className={`h-2 w-2 flex-shrink-0 rounded-full ${STATUS_DOT[application.status] ?? 'bg-teal-400'}`}
             />
             <p className="truncate font-medium text-white">
               {application.company} — {application.role}
@@ -82,14 +83,14 @@ function HistoryRow({ application, resumeFilename }: { application: Application;
                   {application.status_history.map((event, i) => (
                     <li key={event.id} className="flex items-center gap-3 text-sm">
                       <span
-                        className={`h-2 w-2 rounded-full ${STATUS_DOT[event.status] ?? 'bg-indigo-400'}`}
+                        className={`h-2 w-2 rounded-full ${STATUS_DOT[event.status] ?? 'bg-teal-400'}`}
                       />
                       <span className="text-slate-300">{event.status}</span>
                       <span className="text-xs text-slate-600">
                         {new Date(event.created_at).toLocaleDateString()}
                       </span>
                       {i === application.status_history.length - 1 && (
-                        <span className="text-xs text-indigo-400">current</span>
+                        <span className="text-xs text-emerald-400">current</span>
                       )}
                     </li>
                   ))}
@@ -145,27 +146,29 @@ export function HistoryPage() {
   ]
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
       <AppHeader active="history" subtitle="Application history" />
 
       <main className="mx-auto max-w-4xl px-6 py-6">
         <div className="mb-6 flex flex-wrap gap-2">
           {TABS.map((tab) => (
-            <button
+            <motion.button
               key={tab.key}
+              whileHover={{ scale: 1.04 }}
+              whileTap={{ scale: 0.96 }}
               onClick={() => setFilter(tab.key)}
               className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
                 filter === tab.key
-                  ? 'bg-indigo-500 text-white'
+                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
                   : 'bg-slate-900 text-slate-400 hover:text-slate-200'
               }`}
             >
               {tab.label}
-            </button>
+            </motion.button>
           ))}
         </div>
 
-        {isLoading && <p className="text-slate-500">Loading…</p>}
+        {isLoading && <LoadingSpinner label="Loading applications…" />}
         {sorted.length === 0 && !isLoading && (
           <p className="text-slate-500">No applications match this filter.</p>
         )}

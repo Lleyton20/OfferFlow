@@ -24,7 +24,7 @@ function toFormState(initial?: Contact): ContactInput {
 }
 
 const inputClass =
-  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30'
+  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30'
 
 export function ContactFormModal({ initial, onSubmit, onClose, isSaving }: ContactFormModalProps) {
   const [form, setForm] = useState<ContactInput>(toFormState(initial))
@@ -173,7 +173,7 @@ export function ContactFormModal({ initial, onSubmit, onClose, isSaving }: Conta
               whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={isSaving}
-              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
+              className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
             >
               {isSaving ? 'Saving…' : 'Save'}
             </motion.button>

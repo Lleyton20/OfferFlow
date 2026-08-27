@@ -1,5 +1,7 @@
-import { Navigate, Route, Routes } from 'react-router-dom'
+import { AnimatePresence } from 'motion/react'
+import { Navigate, Route, Routes, useLocation } from 'react-router-dom'
 import { GuestRoute } from './components/GuestRoute'
+import { PageFade } from './components/PageFade'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ContactsPage } from './pages/ContactsPage'
@@ -11,74 +13,94 @@ import { RegisterPage } from './pages/RegisterPage'
 import { ResumesPage } from './pages/ResumesPage'
 
 function App() {
+  const location = useLocation()
+
   return (
-    <Routes>
-      <Route
-        path="/"
-        element={
-          <GuestRoute>
-            <LandingPage />
-          </GuestRoute>
-        }
-      />
-      <Route
-        path="/login"
-        element={
-          <GuestRoute>
-            <LoginPage />
-          </GuestRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <GuestRoute>
-            <RegisterPage />
-          </GuestRoute>
-        }
-      />
-      <Route
-        path="/dashboard"
-        element={
-          <ProtectedRoute>
-            <DashboardPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/history"
-        element={
-          <ProtectedRoute>
-            <HistoryPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/resumes"
-        element={
-          <ProtectedRoute>
-            <ResumesPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/contacts"
-        element={
-          <ProtectedRoute>
-            <ContactsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/analytics"
-        element={
-          <ProtectedRoute>
-            <AnalyticsPage />
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<Navigate to="/" replace />} />
-    </Routes>
+    <AnimatePresence mode="wait" initial={false}>
+      <Routes location={location} key={location.pathname}>
+        <Route
+          path="/"
+          element={
+            <GuestRoute>
+              <PageFade>
+                <LandingPage />
+              </PageFade>
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/login"
+          element={
+            <GuestRoute>
+              <PageFade>
+                <LoginPage />
+              </PageFade>
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <GuestRoute>
+              <PageFade>
+                <RegisterPage />
+              </PageFade>
+            </GuestRoute>
+          }
+        />
+        <Route
+          path="/dashboard"
+          element={
+            <ProtectedRoute>
+              <PageFade>
+                <DashboardPage />
+              </PageFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/history"
+          element={
+            <ProtectedRoute>
+              <PageFade>
+                <HistoryPage />
+              </PageFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/resumes"
+          element={
+            <ProtectedRoute>
+              <PageFade>
+                <ResumesPage />
+              </PageFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/contacts"
+          element={
+            <ProtectedRoute>
+              <PageFade>
+                <ContactsPage />
+              </PageFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/analytics"
+          element={
+            <ProtectedRoute>
+              <PageFade>
+                <AnalyticsPage />
+              </PageFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </AnimatePresence>
   )
 }
 

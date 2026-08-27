@@ -10,12 +10,20 @@ body {
 }
 
 ::selection {
-  background-color: rgba(129, 140, 248, 0.35);
+  background-color: rgba(52, 211, 153, 0.35);
 }
 
 * {
   scrollbar-color: #334155 transparent;
   scrollbar-width: thin;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .aurora-bg {
@@ -28,9 +36,22 @@ body {
   position: absolute;
   inset: -20%;
   background:
-    radial-gradient(40% 40% at 20% 20%, rgba(99, 102, 241, 0.25), transparent 70%),
-    radial-gradient(35% 35% at 85% 15%, rgba(168, 85, 247, 0.2), transparent 70%),
+    radial-gradient(40% 40% at 20% 20%, rgba(16, 185, 129, 0.25), transparent 70%),
+    radial-gradient(35% 35% at 85% 15%, rgba(45, 212, 191, 0.2), transparent 70%),
     radial-gradient(45% 45% at 50% 90%, rgba(14, 165, 233, 0.15), transparent 70%);
   filter: blur(60px);
   pointer-events: none;
+  animation: aurora-drift 24s ease-in-out infinite;
+}
+
+/* Same aurora, dialed down — for content-dense app pages rather than hero sections. */
+.aurora-bg-subtle::before {
+  opacity: 0.45;
+  animation-duration: 32s;
+}
+
+@keyframes aurora-drift {
+  0%, 100% { transform: translate(0%, 0%) rotate(0deg) scale(1); }
+  33% { transform: translate(3%, -4%) rotate(6deg) scale(1.05); }
+  66% { transform: translate(-4%, 3%) rotate(-5deg) scale(0.97); }
 }

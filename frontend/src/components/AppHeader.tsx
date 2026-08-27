@@ -30,7 +30,7 @@ export function AppHeader({ active, subtitle, actions }: AppHeaderProps) {
       <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
         <div className="flex items-center gap-6">
           <Link to="/dashboard" className="group flex items-baseline gap-2">
-            <span className="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-sky-400 bg-clip-text text-xl font-bold text-transparent transition group-hover:opacity-80">
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 bg-clip-text text-xl font-bold text-transparent transition group-hover:opacity-80">
               OfferFlow
             </span>
             {subtitle && <span className="hidden text-sm text-slate-500 sm:inline">{subtitle}</span>}
@@ -51,7 +51,7 @@ export function AppHeader({ active, subtitle, actions }: AppHeaderProps) {
                     <motion.span
                       layoutId="nav-pill"
                       transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                      className="absolute inset-0 rounded-md bg-indigo-500/15 ring-1 ring-inset ring-indigo-500/40"
+                      className="absolute inset-0 rounded-md bg-emerald-500/15 ring-1 ring-inset ring-emerald-500/40"
                     />
                   )}
                   <span className="relative">{item.label}</span>

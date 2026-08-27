@@ -29,7 +29,7 @@ function toFormState(initial?: Application): ApplicationInput {
 }
 
 const inputClass =
-  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30'
+  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30'
 
 export function ApplicationFormModal({
   initial,
@@ -143,7 +143,7 @@ export function ApplicationFormModal({
               type="checkbox"
               checked={form.referral_used}
               onChange={(e) => setForm({ ...form, referral_used: e.target.checked })}
-              className="h-4 w-4 rounded border-slate-700 bg-slate-950 accent-indigo-500"
+              className="h-4 w-4 rounded border-slate-700 bg-slate-950 accent-emerald-500"
             />
             Referral used
           </label>
@@ -235,7 +235,7 @@ export function ApplicationFormModal({
               whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={isSaving}
-              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
+              className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
             >
               {isSaving ? 'Saving…' : 'Save'}
             </motion.button>

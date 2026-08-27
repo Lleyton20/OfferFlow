@@ -12,7 +12,7 @@ export function BirthdayBanner({ name }: BirthdayBannerProps) {
       initial={{ opacity: 0, y: -12, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.4, ease: 'easeOut' }}
-      className="relative mb-6 overflow-hidden rounded-2xl border border-fuchsia-500/30 bg-gradient-to-r from-indigo-500/15 via-fuchsia-500/15 to-sky-500/15 px-6 py-4"
+      className="relative mb-6 overflow-hidden rounded-2xl border border-teal-500/30 bg-gradient-to-r from-emerald-500/15 via-teal-500/15 to-sky-500/15 px-6 py-4"
     >
       <div className="flex items-center gap-3">
         <div className="flex -space-x-1 text-xl">

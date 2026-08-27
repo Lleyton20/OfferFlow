@@ -29,7 +29,7 @@ export function OverviewStats({ applications, resumes, contacts }: OverviewStats
       key: 'active',
       label: 'Active applications',
       value: active,
-      accent: 'from-indigo-500/20 to-indigo-500/5 ring-indigo-500/30',
+      accent: 'from-teal-500/20 to-teal-500/5 ring-teal-500/30',
       to: '/dashboard',
       hint: `${applications.length} total tracked`,
     },

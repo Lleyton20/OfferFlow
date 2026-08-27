@@ -7,7 +7,7 @@ const FEATURES = [
     title: 'Application Tracking',
     description:
       'A Kanban board across every stage — Applied through Offer — with deadlines, notes, and custom statuses.',
-    accent: 'from-indigo-500/20 to-indigo-500/5 ring-indigo-500/30',
+    accent: 'from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30',
   },
   {
     title: 'Resume Intelligence',
@@ -19,13 +19,13 @@ const FEATURES = [
     title: 'Networking CRM',
     description:
       'Track recruiters and referrals, log every conversation, and never miss a follow-up date again.',
-    accent: 'from-fuchsia-500/20 to-fuchsia-500/5 ring-fuchsia-500/30',
+    accent: 'from-teal-500/20 to-teal-500/5 ring-teal-500/30',
   },
   {
     title: 'Career Analytics',
     description:
       'See conversion rates and offer rates emerge from your own data — no spreadsheet required.',
-    accent: 'from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30',
+    accent: 'from-amber-500/20 to-amber-500/5 ring-amber-500/30',
   },
 ]
 
@@ -39,7 +39,7 @@ export function LandingPage() {
   return (
     <div className="aurora-bg min-h-screen overflow-hidden bg-slate-950">
       <header className="relative z-10 mx-auto flex max-w-6xl items-center justify-between px-6 py-6">
-        <span className="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-sky-400 bg-clip-text text-xl font-bold text-transparent">
+        <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 bg-clip-text text-xl font-bold text-transparent">
           OfferFlow
         </span>
         <div className="flex items-center gap-3">
@@ -51,7 +51,7 @@ export function LandingPage() {
           </Link>
           <Link
             to="/register"
-            className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
+            className="rounded-lg bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
           >
             Get started
           </Link>
@@ -76,7 +76,7 @@ export function LandingPage() {
             className="mt-6 max-w-3xl text-4xl font-bold tracking-tight text-white sm:text-6xl"
           >
             One place for your{' '}
-            <span className="bg-gradient-to-r from-indigo-400 via-fuchsia-400 to-sky-400 bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 bg-clip-text text-transparent">
               entire job search
             </span>
           </motion.h1>
@@ -100,7 +100,7 @@ export function LandingPage() {
           >
             <Link
               to="/register"
-              className="rounded-lg bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
+              className="rounded-lg bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
             >
               Create your free account
             </Link>
@@ -132,7 +132,7 @@ export function LandingPage() {
                       ? 'border-emerald-500/40 bg-emerald-500/10 text-emerald-300'
                       : status === 'Rejected'
                         ? 'border-slate-700 bg-slate-900/60 text-slate-500'
-                        : 'border-indigo-500/30 bg-indigo-500/10 text-indigo-200'
+                        : 'border-teal-500/30 bg-teal-500/10 text-teal-200'
                   }`}
                 >
                   {status}
@@ -186,7 +186,7 @@ export function LandingPage() {
                 transition={{ duration: 0.4, delay: i * 0.1 }}
                 className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"
               >
-                <span className="text-sm font-semibold text-indigo-400">0{i + 1}</span>
+                <span className="text-sm font-semibold text-emerald-400">0{i + 1}</span>
                 <h3 className="mt-2 text-base font-semibold text-white">{step.title}</h3>
                 <p className="mt-2 text-sm text-slate-400">{step.body}</p>
               </motion.div>
@@ -199,14 +199,14 @@ export function LandingPage() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-60px' }}
           transition={{ duration: 0.4 }}
-          className="mb-20 rounded-3xl border border-slate-800 bg-gradient-to-br from-indigo-500/10 via-fuchsia-500/10 to-sky-500/10 px-8 py-12 text-center"
+          className="mb-20 rounded-3xl border border-slate-800 bg-gradient-to-br from-emerald-500/10 via-teal-500/10 to-sky-500/10 px-8 py-12 text-center"
         >
           <h2 className="text-2xl font-semibold text-white sm:text-3xl">
             Your search deserves a system, not seven tabs.
           </h2>
           <Link
             to="/register"
-            className="mt-6 inline-block rounded-lg bg-indigo-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
+            className="mt-6 inline-block rounded-lg bg-emerald-500 px-6 py-3 text-sm font-semibold text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
           >
             Start tracking for free
           </Link>

@@ -87,7 +87,7 @@ export function ApplicationBoard({
                     <select
                       value={application.status}
                       onChange={(e) => onStatusChange(application, e.target.value)}
-                      className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200 outline-none focus:border-indigo-500"
+                      className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200 outline-none focus:border-emerald-500"
                     >
                       {APPLICATION_STATUSES.map((s) => (
                         <option key={s} value={s}>
@@ -101,7 +101,7 @@ export function ApplicationBoard({
                     <div className="flex gap-3 text-xs">
                       <button
                         onClick={() => onEdit(application)}
-                        className="text-indigo-400 transition hover:text-indigo-300"
+                        className="text-emerald-400 transition hover:text-emerald-300"
                       >
                         Edit
                       </button>

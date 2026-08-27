@@ -8,9 +8,9 @@ function isOverdue(followUpDate: string | null): boolean {
 }
 
 const RELATIONSHIP_COLORS: Record<string, string> = {
-  Recruiter: 'bg-indigo-500/10 text-indigo-400',
-  'Hiring Manager': 'bg-purple-500/10 text-purple-400',
-  Referral: 'bg-emerald-500/10 text-emerald-400',
+  Recruiter: 'bg-emerald-500/10 text-emerald-400',
+  'Hiring Manager': 'bg-teal-500/10 text-teal-400',
+  Referral: 'bg-amber-500/10 text-amber-400',
   Alum: 'bg-sky-500/10 text-sky-400',
 }
 
@@ -66,7 +66,7 @@ export function ContactCard({
           </span>
           <button
             onClick={() => onEdit(contact)}
-            className="text-xs text-indigo-400 transition hover:text-indigo-300"
+            className="text-xs text-emerald-400 transition hover:text-emerald-300"
           >
             Edit
           </button>
@@ -107,7 +107,7 @@ export function ContactCard({
 
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="mt-3 text-xs font-medium text-indigo-400 transition hover:text-indigo-300"
+        className="mt-3 text-xs font-medium text-emerald-400 transition hover:text-emerald-300"
       >
         {expanded
           ? 'Hide conversation history'
@@ -152,17 +152,17 @@ export function ContactCard({
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="rounded-md border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-sm text-white outline-none focus:border-indigo-500"
+                  className="rounded-md border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-sm text-white outline-none focus:border-emerald-500"
                 />
                 <input
                   placeholder="Log a conversation…"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="flex-1 rounded-md border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-sm text-white outline-none focus:border-indigo-500"
+                  className="flex-1 rounded-md border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-sm text-white outline-none focus:border-emerald-500"
                 />
                 <button
                   type="submit"
-                  className="rounded-md bg-indigo-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-indigo-400"
+                  className="rounded-md bg-emerald-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-400"
                 >
                   Add
                 </button>

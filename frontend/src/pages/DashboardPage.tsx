@@ -13,6 +13,7 @@ import { AppHeader } from '../components/AppHeader'
 import { ApplicationBoard } from '../components/ApplicationBoard'
 import { ApplicationFormModal } from '../components/ApplicationFormModal'
 import { BirthdayBanner } from '../components/BirthdayBanner'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 import { OverviewStats } from '../components/OverviewStats'
 import { useAuth } from '../context/AuthContext'
 import { isBirthdayToday } from '../lib/birthday'
@@ -79,7 +80,7 @@ export function DashboardPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
       <AppHeader
         active="dashboard"
         subtitle="From Application to Offer."
@@ -88,7 +89,7 @@ export function DashboardPage() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setModalState({ mode: 'create' })}
-            className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
+            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
           >
             + Add Application
           </motion.button>
@@ -106,7 +107,7 @@ export function DashboardPage() {
           />
         )}
 
-        {isLoading && <p className="text-slate-500">Loading applications…</p>}
+        {isLoading && <LoadingSpinner label="Loading applications…" />}
         {isError && (
           <p className="text-red-400">Couldn&apos;t reach the API: {(error as Error).message}</p>
         )}

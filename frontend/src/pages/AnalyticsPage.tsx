@@ -107,12 +107,12 @@ export function AnalyticsPage() {
   }, [allResumes])
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
       <AppHeader active="analytics" subtitle="Career analytics" />
 
       <main className="mx-auto max-w-5xl px-6 py-6">
         <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile label="Total applications" value={stats.total} accent="from-indigo-500/20 to-indigo-500/5 ring-indigo-500/30" />
+          <StatTile label="Total applications" value={stats.total} accent="from-teal-500/20 to-teal-500/5 ring-teal-500/30" />
           <StatTile label="Offer rate" value={stats.offerRate} suffix="%" accent="from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30" />
           <StatTile label="Rejection rate" value={stats.rejectionRate} suffix="%" accent="from-red-500/20 to-red-500/5 ring-red-500/30" />
           <StatTile label="Avg. resume score" value={stats.avgScore} suffix="/100" accent="from-sky-500/20 to-sky-500/5 ring-sky-500/30" />
@@ -147,8 +147,8 @@ export function AnalyticsPage() {
             <h2 className="text-sm font-semibold text-white">Networking effectiveness</h2>
             <p className="mb-4 mt-0.5 text-xs text-slate-500">How your network is helping the search.</p>
             <div className="grid grid-cols-3 gap-3">
-              <StatTile label="Contacts" value={allContacts.length} accent="from-fuchsia-500/20 to-fuchsia-500/5 ring-fuchsia-500/30" />
-              <StatTile label="Conversations logged" value={stats.totalInteractions} accent="from-indigo-500/20 to-indigo-500/5 ring-indigo-500/30" />
+              <StatTile label="Contacts" value={allContacts.length} accent="from-teal-500/20 to-teal-500/5 ring-teal-500/30" />
+              <StatTile label="Conversations logged" value={stats.totalInteractions} accent="from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30" />
               <StatTile label="Overdue follow-ups" value={stats.overdue} accent="from-amber-500/20 to-amber-500/5 ring-amber-500/30" />
             </div>
           </div>

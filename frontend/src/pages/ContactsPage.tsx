@@ -12,6 +12,7 @@ import {
 import { AppHeader } from '../components/AppHeader'
 import { ContactCard } from '../components/ContactCard'
 import { ContactFormModal } from '../components/ContactFormModal'
+import { LoadingSpinner } from '../components/LoadingSpinner'
 import type { Contact, ContactInput } from '../types/contact'
 
 export function ContactsPage() {
@@ -78,7 +79,7 @@ export function ContactsPage() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-950">
+    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
       <AppHeader active="contacts" subtitle="Networking CRM" />
 
       <main className="mx-auto max-w-4xl px-6 py-6">
@@ -114,13 +115,13 @@ export function ContactsPage() {
             whileHover={{ scale: 1.03 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => setModalState({ mode: 'create' })}
-            className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
+            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
           >
             + Add Contact
           </motion.button>
         </motion.div>
 
-        {isLoading && <p className="text-slate-500">Loading contacts…</p>}
+        {isLoading && <LoadingSpinner label="Loading contacts…" />}
         {contacts && contacts.length === 0 && (
           <p className="text-slate-500">No contacts yet — add your first one above.</p>
         )}

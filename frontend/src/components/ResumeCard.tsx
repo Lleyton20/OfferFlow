@@ -46,7 +46,7 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
 
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="mt-3 text-xs font-medium text-indigo-400 transition hover:text-indigo-300"
+        className="mt-3 text-xs font-medium text-emerald-400 transition hover:text-emerald-300"
       >
         {expanded ? 'Hide details' : 'Show ATS breakdown & AI feedback'}
       </button>
@@ -145,7 +145,7 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
                       </ul>
                     </div>
                     <div>
-                      <p className="font-medium text-indigo-400">Suggestions</p>
+                      <p className="font-medium text-sky-400">Suggestions</p>
                       <ul className="ml-4 list-disc text-slate-400">
                         {resume.ai_feedback.suggestions.map((s) => (
                           <li key={s}>{s}</li>

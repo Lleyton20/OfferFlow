@@ -214,6 +214,18 @@ the Render setup this is built for.
 - **Motion** (`motion/react`) drives page transitions, modal enter/exit, and
   card layout animations (cards animate into place, reflow between status
   columns, and animate out on delete via `AnimatePresence` + `layout`).
+  `App.tsx` also wraps `<Routes>` in `AnimatePresence` keyed on
+  `location.pathname`, so navigating between pages fades/slides via the
+  shared `components/PageFade.tsx` wrapper instead of snapping.
 - Dark theme is the only theme (no light/dark toggle) — set directly in
   `index.css` and via Tailwind utility classes throughout, not a `dark:`
-  variant layered on a light default.
+  variant layered on a light default. Accent is emerald/teal (green), chosen
+  deliberately distinct from the chart status colors in
+  `lib/statusColors.ts` — those stay a validated blue ordinal ramp +
+  reserved green/red so "Offer" doesn't get lost against the app's own
+  chrome now that green is also the brand color.
+- **`index.css`**'s `.aurora-bg` (hero pages) and `.aurora-bg-subtle` (every
+  other app page) apply the same drifting radial-gradient background via a
+  CSS `@keyframes` animation, not JS — a deliberately cheap way to keep
+  every screen feeling alive rather than static, with
+  `prefers-reduced-motion` respected globally.
