@@ -3,6 +3,7 @@ import { motion } from 'motion/react'
 import { useMemo } from 'react'
 import { getApplications } from '../api/applications'
 import { getContacts } from '../api/contacts'
+import { getInterviewSessions } from '../api/interviews'
 import { getResumes } from '../api/resumes'
 import { AnimatedNumber } from '../components/AnimatedNumber'
 import { AppHeader } from '../components/AppHeader'
@@ -39,10 +40,12 @@ export function AnalyticsPage() {
   const { data: applications } = useQuery({ queryKey: ['applications'], queryFn: getApplications })
   const { data: resumes } = useQuery({ queryKey: ['resumes'], queryFn: getResumes })
   const { data: contacts } = useQuery({ queryKey: ['contacts'], queryFn: getContacts })
+  const { data: interviews } = useQuery({ queryKey: ['interviews'], queryFn: getInterviewSessions })
 
   const apps = applications ?? []
   const allResumes = resumes ?? []
   const allContacts = contacts ?? []
+  const allInterviews = interviews ?? []
 
   const stats = useMemo(() => {
     const total = apps.length
@@ -56,6 +59,19 @@ export function AnalyticsPage() {
     const overdue = allContacts.filter((c) => c.follow_up_date && c.follow_up_date < today).length
     const totalInteractions = allContacts.reduce((sum, c) => sum + c.interactions.length, 0)
 
+    const completedInterviews = allInterviews.filter((i) => i.status === 'Completed')
+    const ratedInterviews = completedInterviews.filter((i) => i.performance_rating != null)
+    // Rounded to a whole star — ratings are 1-5 integers (no half-stars in the UI),
+    // and AnimatedNumber rounds to an integer anyway, so a decimal here would be
+    // silently truncated at render time.
+    const avgPerformance = ratedInterviews.length
+      ? Math.round(
+          ratedInterviews.reduce((sum, i) => sum + (i.performance_rating ?? 0), 0) /
+            ratedInterviews.length,
+        )
+      : 0
+    const upcomingInterviews = allInterviews.filter((i) => i.status === 'Scheduled').length
+
     return {
       total,
       offers,
@@ -66,8 +82,11 @@ export function AnalyticsPage() {
       avgScore,
       overdue,
       totalInteractions,
+      completedInterviews: completedInterviews.length,
+      avgPerformance,
+      upcomingInterviews,
     }
-  }, [apps, allResumes, allContacts])
+  }, [apps, allResumes, allContacts, allInterviews])
 
   const statusBreakdown = useMemo(() => {
     const counts = new Map<string, number>()
@@ -150,6 +169,16 @@ export function AnalyticsPage() {
               <StatTile label="Contacts" value={allContacts.length} accent="from-teal-500/20 to-teal-500/5 ring-teal-500/30" />
               <StatTile label="Conversations logged" value={stats.totalInteractions} accent="from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30" />
               <StatTile label="Overdue follow-ups" value={stats.overdue} accent="from-amber-500/20 to-amber-500/5 ring-amber-500/30" />
+            </div>
+          </div>
+
+          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
+            <h2 className="text-sm font-semibold text-white">Interview performance</h2>
+            <p className="mb-4 mt-0.5 text-xs text-slate-500">How prep is translating into interviews.</p>
+            <div className="grid grid-cols-3 gap-3">
+              <StatTile label="Upcoming" value={stats.upcomingInterviews} accent="from-sky-500/20 to-sky-500/5 ring-sky-500/30" />
+              <StatTile label="Completed" value={stats.completedInterviews} accent="from-teal-500/20 to-teal-500/5 ring-teal-500/30" />
+              <StatTile label="Avg. rating" value={stats.avgPerformance} suffix="/5" accent="from-amber-500/20 to-amber-500/5 ring-amber-500/30" />
             </div>
           </div>
         </div>

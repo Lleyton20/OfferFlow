@@ -5,7 +5,7 @@ from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.user import User
 from app.schemas.application import ApplicationCreate, ApplicationRead, ApplicationUpdate
-from app.services import application_service
+from app.services import application_service, resume_service
 
 router = APIRouter(prefix="/applications", tags=["applications"])
 
@@ -15,6 +15,11 @@ def _get_application_or_404(db: Session, user_id: int, application_id: int):
     if application is None:
         raise HTTPException(status_code=404, detail="Application not found")
     return application
+
+
+def _validate_resume_id(db: Session, user_id: int, resume_id: int | None) -> None:
+    if resume_id is not None and resume_service.get_resume(db, user_id, resume_id) is None:
+        raise HTTPException(status_code=400, detail="Resume not found")
 
 
 @router.get("", response_model=list[ApplicationRead])
@@ -30,6 +35,7 @@ def create_application(
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
+    _validate_resume_id(db, current_user.id, application.resume_id)
     return application_service.create_application(db, current_user.id, application)
 
 
@@ -50,6 +56,7 @@ def update_application(
     current_user: User = Depends(get_current_user),
 ):
     existing = _get_application_or_404(db, current_user.id, application_id)
+    _validate_resume_id(db, current_user.id, application.resume_id)
     return application_service.update_application(db, existing, application)
 
 

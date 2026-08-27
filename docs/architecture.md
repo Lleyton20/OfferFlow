@@ -161,6 +161,33 @@ the Render setup this is built for.
   deuteranopia collision, both are always paired with a direct text label on
   the chart, never color alone.
 
+## Interview Preparation
+
+- **`models/interview.py`** — `InterviewSession`: optionally linked to an
+  `Application` via `application_id` (nullable FK — a prep session doesn't
+  require one), plus `interview_type`, `status`, `scheduled_date`,
+  `prep_notes` (the "study plan"), `performance_rating`/`performance_notes`
+  (post-interview reflection), and `mock_questions` (JSON, populated by AI).
+- **`services/interview_ai_service.py`** — same shape as
+  `ai_feedback_service.py`: `client.messages.parse(..., output_format=MockQuestionSet)`
+  returns validated `{question, tip}` pairs directly. When the session is
+  linked to an application, its `role`/`company`/`job_description` are used
+  as context instead of the session's own title — the generated questions
+  are for the actual job, not a generic prompt. Degrades the same way:
+  `ai_feedback_status` of `"not_configured"`/`"error"`/`"ok"`.
+- **Question bank is static, not a backend model.** The 17-question
+  behavioral/situational/culture-fit/technical bank
+  (`frontend/src/lib/questionBank.ts`) is universal content, not
+  user-specific data — no CRUD, no ownership, no reason to round-trip it
+  through the API. This mirrors the "don't build a backend endpoint for
+  things that don't need one" call already made for networking/career
+  analytics above.
+- **`api/interviews.py`** validates `application_id` the same way
+  `api/applications.py` validates `resume_id` (added in the same pass as
+  this feature, closing a gap where a cross-user id could be linked without
+  a check) — both return `400` if the referenced row isn't the caller's own,
+  rather than silently accepting it.
+
 ## Frontend
 
 - **`pages/HistoryPage.tsx`** — every application ever created, newest
@@ -207,7 +234,10 @@ the Render setup this is built for.
   form + `ResumeCard` list with an expandable ATS/AI-feedback breakdown),
   `ContactsPage` (analytics summary bar computed client-side from the
   contacts list + `ContactCard` list with an expandable conversation-history
-  timeline and inline "log a conversation" form).
+  timeline and inline "log a conversation" form), `InterviewPrepPage` (the
+  static question bank alongside `InterviewSessionCard`s — each expandable
+  to AI-generated mock questions, a study-plan textarea, and a
+  `StarRating` + reflection notes for after the interview).
 - **`types/`** — TypeScript types mirroring backend Pydantic schemas.
 - Data fetching/caching goes through **React Query** — no manual `useEffect`
   fetch/loading-state plumbing.

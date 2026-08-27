@@ -4,13 +4,14 @@ import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { isBirthdayToday } from '../lib/birthday'
 
-type NavKey = 'dashboard' | 'resumes' | 'contacts' | 'history' | 'analytics'
+type NavKey = 'dashboard' | 'resumes' | 'contacts' | 'history' | 'analytics' | 'interviews'
 
 const NAV_ITEMS: { key: NavKey; label: string; to: string }[] = [
   { key: 'dashboard', label: 'Dashboard', to: '/dashboard' },
   { key: 'history', label: 'History', to: '/history' },
   { key: 'resumes', label: 'Resumes', to: '/resumes' },
   { key: 'contacts', label: 'Contacts', to: '/contacts' },
+  { key: 'interviews', label: 'Interviews', to: '/interviews' },
   { key: 'analytics', label: 'Analytics', to: '/analytics' },
 ]
 

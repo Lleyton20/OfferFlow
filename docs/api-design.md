@@ -164,3 +164,47 @@ failure, `"ok"` with the populated `ai_feedback` object otherwise.
 "Networking analytics" (total contacts, overdue follow-ups, breakdown by
 relationship type) isn't a separate endpoint — the frontend computes it from
 the `GET /contacts` response it already has.
+
+## `InterviewSession`
+
+```jsonc
+{
+  "id": 1,
+  "application_id": 3,                  // nullable — prep doesn't require a linked application
+  "title": "Technical Screen — Netflix",
+  "interview_type": "Technical",        // suggested: Behavioral, Technical, System Design, Recruiter Screen, Final Round — or custom
+  "scheduled_date": "2026-09-01",       // nullable, ISO date string
+  "status": "Scheduled",                // Scheduled | Completed | Cancelled
+  "prep_notes": "Review system design basics.",  // nullable — the "study plan"
+  "performance_rating": 4,              // nullable, 1-5
+  "performance_notes": "Went well, weak on Big-O.",  // nullable
+  "mock_questions": [
+    { "question": "How would you design a rate limiter?", "tip": "Clarify requirements before diving into algorithm choice." }
+  ],
+  "ai_feedback_status": "ok",           // "ok" | "not_configured" | "error"
+  "created_at": "2026-08-27T05:30:55.214358+00:00",
+  "updated_at": "2026-08-27T05:30:55.214364+00:00"
+}
+```
+
+### Endpoints
+
+| Method | Path                                   | Body                       | Response              | Notes |
+|--------|-----------------------------------------|-----------------------------|-------------------------|-------|
+| GET    | `/interviews`                           | —                            | `InterviewSession[]`   | Newest first |
+| POST   | `/interviews`                           | `InterviewSessionCreate`     | `InterviewSession` (201) | Only `title` is required; `400` if `application_id` isn't the caller's |
+| GET    | `/interviews/{id}`                      | —                            | `InterviewSession`     | 404 if missing or owned by another user |
+| PATCH  | `/interviews/{id}`                      | `InterviewSessionUpdate`     | `InterviewSession`     | All fields optional, including `status`/`performance_rating`/`performance_notes` |
+| DELETE | `/interviews/{id}`                      | —                            | — (204)                | |
+| POST   | `/interviews/{id}/generate-questions`   | —                            | `InterviewSession`     | Calls Claude; updates `mock_questions` + `ai_feedback_status` in place |
+
+`POST .../generate-questions` uses the linked application's `role`,
+`company`, and `job_description` as context when `application_id` is set;
+otherwise it falls back to the session's own `title`/`interview_type`. Like
+resume AI feedback, it degrades gracefully — a missing `ANTHROPIC_API_KEY`
+returns `ai_feedback_status: "not_configured"` with `mock_questions: []`
+rather than failing the request.
+
+The static behavioral/situational/technical question bank shown alongside
+sessions in the UI isn't backend content — see
+[architecture.md](architecture.md#interview-preparation).

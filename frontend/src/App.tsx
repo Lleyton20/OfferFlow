@@ -7,6 +7,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ContactsPage } from './pages/ContactsPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { HistoryPage } from './pages/HistoryPage'
+import { InterviewPrepPage } from './pages/InterviewPrepPage'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
@@ -84,6 +85,16 @@ function App() {
             <ProtectedRoute>
               <PageFade>
                 <ContactsPage />
+              </PageFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/interviews"
+          element={
+            <ProtectedRoute>
+              <PageFade>
+                <InterviewPrepPage />
               </PageFade>
             </ProtectedRoute>
           }

@@ -11,6 +11,13 @@ from app.schemas.contact import (
     InteractionCreate,
     InteractionRead,
 )
+from app.schemas.interview import (
+    InterviewSessionCreate,
+    InterviewSessionRead,
+    InterviewSessionUpdate,
+    MockQuestionItem,
+    MockQuestionSet,
+)
 from app.schemas.resume import AIFeedback, ResumeCheck, ResumeRead
 from app.schemas.user import UserCreate, UserLogin, UserRead
 
@@ -24,6 +31,11 @@ __all__ = [
     "ContactUpdate",
     "InteractionCreate",
     "InteractionRead",
+    "InterviewSessionCreate",
+    "InterviewSessionRead",
+    "InterviewSessionUpdate",
+    "MockQuestionItem",
+    "MockQuestionSet",
     "AIFeedback",
     "ResumeCheck",
     "ResumeRead",

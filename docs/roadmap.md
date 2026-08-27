@@ -55,10 +55,17 @@ Application Tracking System
       computed client-side from the existing `/applications`, `/resumes`, and
       `/contacts` endpoints (no new backend analytics endpoint)
 
-## Phase 5 — Interview Preparation Suite
-- [ ] Mock interviews
-- [ ] Study plans
-- [ ] Performance tracking
+## Phase 5 — Interview Preparation Suite ✅ done
+- [x] Mock interview generation (Claude-generated questions + tips per role/interview
+      type, using the linked application's role/company/job description when set;
+      degrades gracefully without an API key, same pattern as resume AI feedback)
+- [x] Study plans (per-session prep notes)
+- [x] Behavioral question preparation (a static, filterable question bank — no AI
+      call needed, always available)
+- [x] Technical interview tracking (sessions optionally linked to a specific
+      application, with type/status/scheduled date)
+- [x] Interview performance history (1-5 star rating + reflection notes per
+      session, rolled up into a summary tile on Analytics)
 
 ## Phase 6 — OfferFlow AI
 - [ ] Career recommendations
