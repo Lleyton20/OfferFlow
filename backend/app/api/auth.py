@@ -1,3 +1,5 @@
+import os
+
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
 
@@ -17,6 +19,15 @@ router = APIRouter(prefix="/auth", tags=["auth"])
 
 COOKIE_MAX_AGE = JWT_EXPIRE_MINUTES * 60
 
+# Local dev: frontend/backend are different ports on the same "localhost" site,
+# so Lax + non-Secure works over plain HTTP. Once deployed, frontend and backend
+# live on different domains entirely (e.g. vercel.app vs onrender.com) — that's
+# cross-site, so the cookie needs SameSite=None + Secure (HTTPS-only) or browsers
+# will silently drop it on cross-origin requests. Toggle with ENV=production.
+IS_PRODUCTION = os.getenv("ENV", "development") == "production"
+COOKIE_SAMESITE = "none" if IS_PRODUCTION else "lax"
+COOKIE_SECURE = IS_PRODUCTION
+
 
 def _set_session_cookie(response: Response, user_id: int) -> None:
     token = create_access_token(user_id)
@@ -25,8 +36,8 @@ def _set_session_cookie(response: Response, user_id: int) -> None:
         value=token,
         max_age=COOKIE_MAX_AGE,
         httponly=True,
-        samesite="lax",
-        secure=False,
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
 
 
@@ -50,7 +61,7 @@ def login(data: UserLogin, response: Response, db: Session = Depends(get_db)):
 
 @router.post("/logout", status_code=204)
 def logout(response: Response):
-    response.delete_cookie(COOKIE_NAME)
+    response.delete_cookie(COOKIE_NAME, samesite=COOKIE_SAMESITE, secure=COOKIE_SECURE)
 
 
 @router.get("/me", response_model=UserRead)

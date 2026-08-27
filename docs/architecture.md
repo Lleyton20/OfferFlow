@@ -34,10 +34,13 @@ Database (SQLite for local dev, swappable to Postgres via DATABASE_URL)
 
 ## Swapping SQLite for Postgres
 
-No code changes needed — set `DATABASE_URL` (see `backend/.env.example`) to a
-Postgres connection string, e.g. `postgresql://user:pass@host:5432/offerflow`,
-and install a Postgres driver (`psycopg[binary]`) alongside the existing
-requirements.
+No code changes needed — the `psycopg[binary]` driver is already in
+`requirements.txt`. Just set `DATABASE_URL` (see `backend/.env.example`) to a
+Postgres connection string. `database.py` normalizes both `postgres://` and
+`postgresql://` (the formats hosts like Render/Heroku hand back) to
+`postgresql+psycopg://` automatically, so you can paste the connection
+string as given without editing it. See [deployment.md](deployment.md) for
+the Render setup this is built for.
 
 ## Authentication
 
@@ -51,11 +54,17 @@ requirements.
 - Every `Application` row has a `user_id` FK; `application_service` filters
   every query by the authenticated user's id, and `get`/`update`/`delete`
   return `404` (not `403`) for another user's row, to avoid leaking existence.
-- The cookie is `httponly` + `samesite=lax` — safe from JS/XSS reading it,
-  and sent automatically on same-site requests (both frontend and backend run
-  on `localhost`, just different ports). CORS is pinned to a specific origin
-  (`CORS_ORIGINS`), which is required for cookies to work with
-  `allow_credentials=True` — a wildcard origin isn't allowed.
+- The cookie is always `httponly`. Its `samesite`/`secure` flags depend on
+  `ENV`: locally (`ENV=development`, the default) it's `samesite=lax` +
+  non-secure, which works over plain HTTP when frontend and backend are on
+  the same site (`localhost`, just different ports). In production
+  (`ENV=production`) it switches to `samesite=none` + `secure=true`, which
+  is *required* once frontend and backend are on different domains
+  (Vercel vs. Render) — `Lax` cookies are not sent on cross-site requests,
+  and `SameSite=None` is rejected by browsers without `Secure`. See
+  `api/auth.py`. CORS is pinned to a specific origin (`CORS_ORIGINS`), which
+  is required for cookies to work with `allow_credentials=True` — a
+  wildcard origin isn't allowed.
 
 ## Resume Intelligence
 

@@ -317,6 +317,12 @@ npm run dev
 The app runs at `http://localhost:5173` and expects the backend above to be
 running.
 
+### Deploying
+
+See [docs/deployment.md](docs/deployment.md) for the full guide — backend +
+Postgres on Render, frontend on Vercel, both deploying straight from this
+GitHub repo.
+
 ---
 
 ## Long-Term Vision
