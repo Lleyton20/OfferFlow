@@ -6,7 +6,16 @@ export interface Credentials {
   password: string
 }
 
-export function register(data: Credentials): Promise<User> {
+export interface RegisterData {
+  email: string
+  password: string
+  full_name: string
+  birthday: string
+  university?: string
+  grad_year?: number
+}
+
+export function register(data: RegisterData): Promise<User> {
   return apiFetch('/auth/register', { method: 'POST', body: JSON.stringify(data) })
 }
 

@@ -1,6 +1,13 @@
-from app.models.application import Application
+from app.models.application import Application, ApplicationStatusEvent
 from app.models.contact import Contact, ContactInteraction
 from app.models.resume import Resume
 from app.models.user import User
 
-__all__ = ["Application", "Contact", "ContactInteraction", "Resume", "User"]
+__all__ = [
+    "Application",
+    "ApplicationStatusEvent",
+    "Contact",
+    "ContactInteraction",
+    "Resume",
+    "User",
+]

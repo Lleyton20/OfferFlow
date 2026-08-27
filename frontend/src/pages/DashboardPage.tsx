@@ -1,20 +1,25 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   createApplication,
   deleteApplication,
   getApplications,
   updateApplication,
 } from '../api/applications'
+import { getContacts } from '../api/contacts'
+import { getResumes } from '../api/resumes'
+import { AppHeader } from '../components/AppHeader'
 import { ApplicationBoard } from '../components/ApplicationBoard'
 import { ApplicationFormModal } from '../components/ApplicationFormModal'
+import { BirthdayBanner } from '../components/BirthdayBanner'
+import { OverviewStats } from '../components/OverviewStats'
 import { useAuth } from '../context/AuthContext'
+import { isBirthdayToday } from '../lib/birthday'
 import type { Application, ApplicationInput } from '../types/application'
 
 export function DashboardPage() {
-  const { user, logout } = useAuth()
+  const { user } = useAuth()
   const queryClient = useQueryClient()
   const [modalState, setModalState] = useState<
     { mode: 'create' } | { mode: 'edit'; application: Application } | null
@@ -24,6 +29,12 @@ export function DashboardPage() {
     queryKey: ['applications'],
     queryFn: getApplications,
   })
+
+  // Fetched here too (not just on their own pages) so the overview strip below
+  // can tie all three domains together on one screen, and so Resumes/Contacts
+  // feel instant when the user clicks through — React Query already has them cached.
+  const { data: resumes } = useQuery({ queryKey: ['resumes'], queryFn: getResumes })
+  const { data: contacts } = useQuery({ queryKey: ['contacts'], queryFn: getContacts })
 
   const invalidate = () => queryClient.invalidateQueries({ queryKey: ['applications'] })
 
@@ -69,39 +80,32 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-xl font-semibold text-white">OfferFlow</h1>
-            <p className="text-sm text-slate-500">From Application to Offer.</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/resumes" className="text-sm text-slate-400 transition hover:text-slate-200">
-              Resumes
-            </Link>
-            <Link to="/contacts" className="text-sm text-slate-400 transition hover:text-slate-200">
-              Contacts
-            </Link>
-            {user && <span className="text-sm text-slate-400">{user.email}</span>}
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              onClick={() => setModalState({ mode: 'create' })}
-              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
-            >
-              + Add Application
-            </motion.button>
-            <button
-              onClick={() => logout()}
-              className="text-sm text-slate-500 transition hover:text-slate-300"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader
+        active="dashboard"
+        subtitle="From Application to Offer."
+        actions={
+          <motion.button
+            whileHover={{ scale: 1.03 }}
+            whileTap={{ scale: 0.97 }}
+            onClick={() => setModalState({ mode: 'create' })}
+            className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400"
+          >
+            + Add Application
+          </motion.button>
+        }
+      />
 
       <main className="mx-auto max-w-6xl px-6 py-6">
+        {isBirthdayToday(user?.birthday) && <BirthdayBanner name={user?.full_name?.split(' ')[0]} />}
+
+        {applications && (
+          <OverviewStats
+            applications={applications}
+            resumes={resumes ?? []}
+            contacts={contacts ?? []}
+          />
+        )}
+
         {isLoading && <p className="text-slate-500">Loading applications…</p>}
         {isError && (
           <p className="text-red-400">Couldn&apos;t reach the API: {(error as Error).message}</p>

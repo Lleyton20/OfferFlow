@@ -3,6 +3,14 @@ from datetime import datetime
 from pydantic import BaseModel, ConfigDict
 
 
+class StatusEventRead(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    status: str
+    created_at: datetime
+
+
 class ApplicationCreate(BaseModel):
     company: str
     role: str
@@ -15,6 +23,7 @@ class ApplicationCreate(BaseModel):
     strengths: list[str] = []
     weaknesses: list[str] = []
     notes: str | None = None
+    resume_id: int | None = None
 
 
 class ApplicationUpdate(BaseModel):
@@ -29,6 +38,7 @@ class ApplicationUpdate(BaseModel):
     strengths: list[str] | None = None
     weaknesses: list[str] | None = None
     notes: str | None = None
+    resume_id: int | None = None
 
 
 class ApplicationRead(BaseModel):
@@ -46,5 +56,7 @@ class ApplicationRead(BaseModel):
     strengths: list[str]
     weaknesses: list[str]
     notes: str | None
+    resume_id: int | None
     created_at: datetime
     updated_at: datetime
+    status_history: list[StatusEventRead]

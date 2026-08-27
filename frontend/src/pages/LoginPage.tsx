@@ -18,7 +18,7 @@ export function LoginPage() {
     setIsSubmitting(true)
     try {
       await login(email, password)
-      navigate('/', { replace: true })
+      navigate('/dashboard', { replace: true })
     } catch (err) {
       setError(err instanceof ApiError ? err.message : 'Something went wrong')
     } finally {

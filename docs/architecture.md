@@ -44,7 +44,14 @@ the Render setup this is built for.
 
 ## Authentication
 
-- **`models/user.py`** — `User` (email, bcrypt-hashed password).
+- **`models/user.py`** — `User` (email, bcrypt-hashed password, `full_name`,
+  `birthday`, and optional `university`/`grad_year`). `full_name` and
+  `birthday` are required at registration (`schemas/user.py` validates the
+  birthday isn't in the future or absurdly old); `university`/`grad_year` are
+  optional. None of this is exposed anywhere except back to the owning user
+  via `/auth/me` — `birthday` currently only drives a client-side "happy
+  birthday" banner (`components/BirthdayBanner.tsx`, matched on month/day in
+  `lib/birthday.ts`), nothing is emailed or shared externally.
 - **`services/auth_service.py`** — password hashing/verification (`bcrypt`)
   and JWT creation/decoding (`PyJWT`, `HS256`, secret from `JWT_SECRET_KEY`).
 - **`api/deps.py`** — `get_current_user` dependency: reads the `access_token`
@@ -121,8 +128,70 @@ the Render setup this is built for.
   same `GET /contacts` response already being fetched. No dedicated
   stats/notifications endpoint or background job exists yet.
 
+## Application History & Analytics
+
+- **`models/application.py`** — `Application` gained `resume_id` (nullable FK
+  to `resumes.id` — which resume was submitted for this application, set by
+  the client at create/edit time, never inferred) and a `status_history`
+  relationship to the new `ApplicationStatusEvent` table (one row per status
+  the application has ever held, with a timestamp; `cascade="all,
+  delete-orphan"` like `Contact.interactions`).
+- **`services/application_service.py`** — `create_application` writes the
+  initial status event; `update_application` writes a new one *only* when
+  `status` actually changes (not on every PATCH — editing notes doesn't spam
+  the timeline). `list_applications`/`get_application` eager-load
+  `status_history` via `selectinload`, same no-N+1 pattern as contacts.
+- **No new backend analytics endpoint.** Offer rate, rejection rate, average
+  resume score, status breakdown, applications-over-time, and resume-score
+  trend are all computed client-side in `pages/AnalyticsPage.tsx` from data
+  the existing `/applications`, `/resumes`, and `/contacts` endpoints already
+  return — consistent with the networking-analytics decision above. This
+  keeps the backend from needing a bespoke aggregation query per chart; the
+  tradeoff is these numbers are only as fresh as React Query's cache and
+  don't scale to a dataset too large to fetch in full (not a concern at this
+  app's scale).
+- **Chart colors are validated, not eyeballed** — see `lib/statusColors.ts`.
+  The 5 pipeline statuses (Applied → Final Round) use one blue hue in
+  monotone steps (an *ordinal* ramp: order carries meaning, so a single hue
+  stepping light→dark is correct — see the dataviz skill's
+  `references/color-formula.md`), validated with
+  `scripts/validate_palette.js --ordinal` against the app's actual dark
+  surface (`#05060a`). Offer/Rejected use reserved status colors (green/red)
+  instead of the ordinal ramp — and because red/green is the classic
+  deuteranopia collision, both are always paired with a direct text label on
+  the chart, never color alone.
+
 ## Frontend
 
+- **`pages/HistoryPage.tsx`** — every application ever created, newest
+  `date_applied` first, filterable (All/Active/Offers/Rejected via tab
+  counts computed from the same list). Each row expands to show the job
+  description, the linked resume, and the full status timeline — this is
+  the one screen that answers "what have I actually applied to, and what
+  happened."
+- **`pages/AnalyticsPage.tsx`** + **`components/charts/`** — `StatusBarChart`
+  (horizontal bars, rounded data-ends, per-bar hover tooltip, direct value
+  labels) and `TrendChart` (single-hue line + dots, per-point hover) are
+  small hand-rolled SVG components rather than a charting library — the
+  dataset sizes here don't need one, and it keeps the mark specs (rounded
+  ends, hover-to-lift, direct labels) under direct control per the dataviz
+  skill's `references/marks-and-anatomy.md`.
+- **`pages/LandingPage.tsx`** — public marketing page at `/` for signed-out
+  visitors (hero, feature grid, pipeline-stage visual, CTA). Signed-in users
+  never see it: `components/GuestRoute.tsx` redirects `/`, `/login`, and
+  `/register` straight to `/dashboard`, mirroring how `ProtectedRoute`
+  redirects the authenticated-only routes to `/login`.
+- **`components/AppHeader.tsx`** — the single nav shell shared by
+  Dashboard/Resumes/Contacts (logo, animated active-tab pill via a shared
+  `layoutId`, birthday indicator, logout). Replaces what used to be three
+  near-identical `<header>` blocks copy-pasted across those pages.
+- **`components/OverviewStats.tsx`** — a small stats strip on the dashboard
+  computed from applications + resumes + contacts together (active
+  applications, offers, overdue follow-ups, latest resume score), each tile
+  linking to the page it summarizes. Exists so the three tools read as one
+  connected product on first load rather than three disconnected sections;
+  the dashboard now also prefetches resumes/contacts via React Query so
+  those pages feel instant when clicked into.
 - **`api/client.ts`** — shared `apiFetch` wrapper: always sends
   `credentials: 'include'` (required for the auth cookie) and throws
   `ApiError` with the backend's `detail` message on non-2xx responses.

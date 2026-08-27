@@ -25,6 +25,8 @@ def test_create_and_list_application(auth_client):
     created = response.json()
     assert created["company"] == "Google"
     assert created["id"] is not None
+    assert len(created["status_history"]) == 1
+    assert created["status_history"][0]["status"] == "Applied"
 
     response = auth_client.get("/applications")
     assert response.status_code == 200
@@ -55,6 +57,30 @@ def test_update_application_status(auth_client):
     assert response.json()["company"] == "Google"
 
 
+def test_status_history_records_each_transition(auth_client):
+    created = auth_client.post("/applications", json=_sample_application()).json()
+
+    auth_client.patch(f"/applications/{created['id']}", json={"status": "Recruiter Screen"})
+    auth_client.patch(f"/applications/{created['id']}", json={"status": "Recruiter Screen"})
+    auth_client.patch(f"/applications/{created['id']}", json={"status": "Rejected"})
+
+    history = auth_client.get(f"/applications/{created['id']}").json()["status_history"]
+    statuses = [event["status"] for event in history]
+    assert statuses == ["Applied", "Recruiter Screen", "Rejected"]
+
+
+def test_application_can_link_a_resume(auth_client):
+    resume = auth_client.post(
+        "/resumes",
+        files={"file": ("resume.txt", b"Python React SQL", "text/plain")},
+    ).json()
+
+    created = auth_client.post(
+        "/applications", json={**_sample_application(), "resume_id": resume["id"]}
+    ).json()
+    assert created["resume_id"] == resume["id"]
+
+
 def test_delete_application(auth_client):
     created = auth_client.post("/applications", json=_sample_application()).json()
 
@@ -66,10 +92,10 @@ def test_delete_application(auth_client):
 
 
 def test_application_isolated_between_users(client):
-    client.post("/auth/register", json={"email": "userA@example.com", "password": "password123"})
+    client.post("/auth/register", json={"email": "userA@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
     created = client.post("/applications", json=_sample_application()).json()
 
-    client.post("/auth/register", json={"email": "userB@example.com", "password": "password123"})
+    client.post("/auth/register", json={"email": "userB@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
 
     assert client.get(f"/applications/{created['id']}").status_code == 404
     assert (

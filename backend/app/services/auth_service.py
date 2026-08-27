@@ -46,7 +46,14 @@ def get_user_by_id(db: Session, user_id: int) -> User | None:
 
 
 def register_user(db: Session, data: UserCreate) -> User:
-    user = User(email=data.email, hashed_password=hash_password(data.password))
+    user = User(
+        email=data.email,
+        hashed_password=hash_password(data.password),
+        full_name=data.full_name,
+        birthday=data.birthday,
+        university=data.university,
+        grad_year=data.grad_year,
+    )
     db.add(user)
     db.commit()
     db.refresh(user)

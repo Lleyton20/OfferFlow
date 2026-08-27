@@ -5,6 +5,12 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database import Base, get_db
 from app.main import app
+from app.services import resume_service
+
+
+@pytest.fixture(autouse=True)
+def _isolate_uploads(monkeypatch, tmp_path):
+    monkeypatch.setattr(resume_service, "UPLOAD_DIR", tmp_path / "resumes")
 
 
 @pytest.fixture()
@@ -32,6 +38,6 @@ def client(tmp_path):
 @pytest.fixture()
 def auth_client(client):
     client.post(
-        "/auth/register", json={"email": "student@example.com", "password": "password123"}
+        "/auth/register", json={"email": "student@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"}
     )
     return client

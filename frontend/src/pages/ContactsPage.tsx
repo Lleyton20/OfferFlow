@@ -1,7 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useMemo, useState } from 'react'
-import { Link } from 'react-router-dom'
 import {
   addInteraction,
   createContact,
@@ -10,13 +9,12 @@ import {
   getContacts,
   updateContact,
 } from '../api/contacts'
+import { AppHeader } from '../components/AppHeader'
 import { ContactCard } from '../components/ContactCard'
 import { ContactFormModal } from '../components/ContactFormModal'
-import { useAuth } from '../context/AuthContext'
 import type { Contact, ContactInput } from '../types/contact'
 
 export function ContactsPage() {
-  const { user, logout } = useAuth()
   const queryClient = useQueryClient()
   const [modalState, setModalState] = useState<
     { mode: 'create' } | { mode: 'edit'; contact: Contact } | null
@@ -81,29 +79,7 @@ export function ContactsPage() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-xl font-semibold text-white">OfferFlow</h1>
-            <p className="text-sm text-slate-500">Networking CRM</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/" className="text-sm text-slate-400 transition hover:text-slate-200">
-              ← Dashboard
-            </Link>
-            <Link to="/resumes" className="text-sm text-slate-400 transition hover:text-slate-200">
-              Resumes
-            </Link>
-            {user && <span className="text-sm text-slate-400">{user.email}</span>}
-            <button
-              onClick={() => logout()}
-              className="text-sm text-slate-500 transition hover:text-slate-300"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader active="contacts" subtitle="Networking CRM" />
 
       <main className="mx-auto max-w-4xl px-6 py-6">
         <motion.div

@@ -27,6 +27,34 @@ Application Tracking System
 - [x] Conversation history (timestamped interaction log per contact)
 - [x] Networking analytics (total contacts, overdue follow-ups, breakdown by relationship type)
 
+## Phase 1.5 — Product Polish (V1 launch pass) ✅ done
+- [x] Public landing page (marketing/hero page for signed-out visitors, at `/`; the
+      dashboard moved to `/dashboard`)
+- [x] Shared navigation shell (`AppHeader`) across Dashboard/Resumes/Contacts —
+      replaces three copies of the same header, animated active-tab indicator
+- [x] Cross-domain overview strip on the dashboard (active applications, offers,
+      overdue follow-ups, latest resume score — each linking to its own page) so
+      the three tools read as one connected product instead of three silos
+- [x] Richer signup: full name and birthday are now required (birthday
+      unlocks a small in-app birthday banner); university and expected
+      graduation year are optional
+- [x] Signed-in users are redirected away from `/`, `/login`, `/register`
+      straight to `/dashboard`
+
+## Phase 4.5 — Application History & Career Analytics ✅ done
+- [x] Status history (every status change is recorded with a timestamp, not just
+      the current status — shown as a timeline per application)
+- [x] Application history list (`/history`) — every application ever created, in
+      one chronological list with a job-description and status-timeline detail
+      view, filterable by All / Active / Offers / Rejected
+- [x] Resumes linked to applications — pick which uploaded resume was used for
+      each application at create/edit time; shown on the board card and in history
+- [x] Career analytics (`/analytics`) — offer rate, rejection rate, average resume
+      score, applications-by-status breakdown, applications-over-time and
+      resume-score trend charts, and a networking-effectiveness summary, all
+      computed client-side from the existing `/applications`, `/resumes`, and
+      `/contacts` endpoints (no new backend analytics endpoint)
+
 ## Phase 5 — Interview Preparation Suite
 - [ ] Mock interviews
 - [ ] Study plans

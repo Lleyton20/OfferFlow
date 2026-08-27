@@ -1,4 +1,6 @@
+import { useQuery } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
+import { getResumes } from '../api/resumes'
 import { APPLICATION_STATUSES, type Application } from '../types/application'
 
 interface ApplicationBoardProps {
@@ -32,6 +34,8 @@ export function ApplicationBoard({
   onStatusChange,
 }: ApplicationBoardProps) {
   const groups = groupByStatus(applications)
+  const { data: resumes } = useQuery({ queryKey: ['resumes'], queryFn: getResumes })
+  const resumeById = new Map((resumes ?? []).map((r) => [r.id, r]))
 
   return (
     <div className="flex gap-4 overflow-x-auto pb-4">
@@ -74,6 +78,11 @@ export function ApplicationBoard({
                     )}
                   </div>
                   <p className="mt-1 text-xs text-slate-500">Applied {application.date_applied}</p>
+                  {application.resume_id && resumeById.get(application.resume_id) && (
+                    <p className="mt-0.5 truncate text-xs text-sky-400">
+                      📄 {resumeById.get(application.resume_id)!.filename}
+                    </p>
+                  )}
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <select
                       value={application.status}

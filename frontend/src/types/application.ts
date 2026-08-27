@@ -10,6 +10,12 @@ export const APPLICATION_STATUSES = [
 
 export type KnownStatus = (typeof APPLICATION_STATUSES)[number]
 
+export interface StatusEvent {
+  id: number
+  status: string
+  created_at: string
+}
+
 export interface Application {
   id: number
   company: string
@@ -23,8 +29,10 @@ export interface Application {
   strengths: string[]
   weaknesses: string[]
   notes: string | null
+  resume_id: number | null
   created_at: string
   updated_at: string
+  status_history: StatusEvent[]
 }
 
 export interface ApplicationInput {
@@ -39,4 +47,5 @@ export interface ApplicationInput {
   strengths: string[]
   weaknesses: string[]
   notes: string | null
+  resume_id: number | null
 }

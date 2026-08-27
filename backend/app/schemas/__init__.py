@@ -1,4 +1,9 @@
-from app.schemas.application import ApplicationCreate, ApplicationRead, ApplicationUpdate
+from app.schemas.application import (
+    ApplicationCreate,
+    ApplicationRead,
+    ApplicationUpdate,
+    StatusEventRead,
+)
 from app.schemas.contact import (
     ContactCreate,
     ContactRead,
@@ -13,6 +18,7 @@ __all__ = [
     "ApplicationCreate",
     "ApplicationRead",
     "ApplicationUpdate",
+    "StatusEventRead",
     "ContactCreate",
     "ContactRead",
     "ContactUpdate",

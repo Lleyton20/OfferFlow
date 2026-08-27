@@ -1,14 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useRef, useState, type FormEvent } from 'react'
-import { Link } from 'react-router-dom'
 import { deleteResume, getResumes, uploadResume } from '../api/resumes'
 import { ApiError } from '../api/client'
+import { AppHeader } from '../components/AppHeader'
 import { ResumeCard } from '../components/ResumeCard'
-import { useAuth } from '../context/AuthContext'
 
 export function ResumesPage() {
-  const { user, logout } = useAuth()
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [jobDescription, setJobDescription] = useState('')
@@ -49,29 +47,7 @@ export function ResumesPage() {
 
   return (
     <div className="min-h-screen bg-slate-950">
-      <header className="border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-        <div className="mx-auto flex max-w-4xl items-center justify-between px-6 py-4">
-          <div>
-            <h1 className="text-xl font-semibold text-white">OfferFlow</h1>
-            <p className="text-sm text-slate-500">Resume Intelligence</p>
-          </div>
-          <div className="flex items-center gap-4">
-            <Link to="/" className="text-sm text-slate-400 transition hover:text-slate-200">
-              ← Dashboard
-            </Link>
-            <Link to="/contacts" className="text-sm text-slate-400 transition hover:text-slate-200">
-              Contacts
-            </Link>
-            {user && <span className="text-sm text-slate-400">{user.email}</span>}
-            <button
-              onClick={() => logout()}
-              className="text-sm text-slate-500 transition hover:text-slate-300"
-            >
-              Log out
-            </button>
-          </div>
-        </div>
-      </header>
+      <AppHeader active="resumes" subtitle="Resume Intelligence" />
 
       <main className="mx-auto max-w-4xl px-6 py-6">
         <motion.form

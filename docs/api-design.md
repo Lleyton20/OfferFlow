@@ -41,8 +41,13 @@ httpOnly `access_token` cookie (set automatically by `/auth/register` and
   "strengths": ["Python", "React"],
   "weaknesses": ["System design"],
   "notes": "Need to follow up.",    // nullable
+  "resume_id": 3,                   // nullable — which uploaded resume was used
   "created_at": "2026-08-27T05:30:55.214358+00:00",
-  "updated_at": "2026-08-27T05:30:55.214364+00:00"
+  "updated_at": "2026-08-27T05:30:55.214364+00:00",
+  "status_history": [
+    { "id": 1, "status": "Applied", "created_at": "2026-06-18T09:00:00+00:00" },
+    { "id": 2, "status": "Recruiter Screen", "created_at": "2026-06-25T14:30:00+00:00" }
+  ]
 }
 ```
 
@@ -50,6 +55,15 @@ httpOnly `access_token` cookie (set automatically by `/auth/register` and
 `Applied`, `Online Assessment`, `Recruiter Screen`, `Technical Interview`,
 `Final Round`, `Offer`, `Rejected` — the frontend suggests these but the
 `status` field accepts any string, so custom statuses are supported.
+
+### Status history
+`status_history` is append-only and read-only via this API — there's no
+endpoint to edit or delete an entry. A new event is recorded automatically
+whenever `PATCH .../status` actually changes the value (setting it to the
+same value again does not add a duplicate entry), plus one initial event at
+creation time. It's how [docs/architecture.md](architecture.md)'s "Career
+Analytics" and the frontend's History page reconstruct a timeline without a
+separate audit-log feature.
 
 ## Endpoints
 

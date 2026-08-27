@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from 'react'
 import * as authApi from '../api/auth'
+import type { RegisterData } from '../api/auth'
 import { ApiError } from '../api/client'
 import type { User } from '../types/user'
 
@@ -7,7 +8,7 @@ interface AuthContextValue {
   user: User | null
   isLoading: boolean
   login: (email: string, password: string) => Promise<void>
-  register: (email: string, password: string) => Promise<void>
+  register: (data: RegisterData) => Promise<void>
   logout: () => Promise<void>
 }
 
@@ -33,8 +34,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setUser(await authApi.login({ email, password }))
   }
 
-  async function register(email: string, password: string) {
-    setUser(await authApi.register({ email, password }))
+  async function register(data: RegisterData) {
+    setUser(await authApi.register(data))
   }
 
   async function logout() {

@@ -1,7 +1,11 @@
 import { Navigate, Route, Routes } from 'react-router-dom'
+import { GuestRoute } from './components/GuestRoute'
 import { ProtectedRoute } from './components/ProtectedRoute'
+import { AnalyticsPage } from './pages/AnalyticsPage'
 import { ContactsPage } from './pages/ContactsPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { HistoryPage } from './pages/HistoryPage'
+import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
 import { ResumesPage } from './pages/ResumesPage'
@@ -9,13 +13,43 @@ import { ResumesPage } from './pages/ResumesPage'
 function App() {
   return (
     <Routes>
-      <Route path="/login" element={<LoginPage />} />
-      <Route path="/register" element={<RegisterPage />} />
       <Route
         path="/"
         element={
+          <GuestRoute>
+            <LandingPage />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/login"
+        element={
+          <GuestRoute>
+            <LoginPage />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <GuestRoute>
+            <RegisterPage />
+          </GuestRoute>
+        }
+      />
+      <Route
+        path="/dashboard"
+        element={
           <ProtectedRoute>
             <DashboardPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/history"
+        element={
+          <ProtectedRoute>
+            <HistoryPage />
           </ProtectedRoute>
         }
       />
@@ -32,6 +66,14 @@ function App() {
         element={
           <ProtectedRoute>
             <ContactsPage />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/analytics"
+        element={
+          <ProtectedRoute>
+            <AnalyticsPage />
           </ProtectedRoute>
         }
       />

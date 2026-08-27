@@ -1,5 +1,7 @@
+import { useQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
 import { useState, type FormEvent } from 'react'
+import { getResumes } from '../api/resumes'
 import { APPLICATION_STATUSES, type Application, type ApplicationInput } from '../types/application'
 
 interface ApplicationFormModalProps {
@@ -22,6 +24,7 @@ function toFormState(initial?: Application): ApplicationInput {
     strengths: initial?.strengths ?? [],
     weaknesses: initial?.weaknesses ?? [],
     notes: initial?.notes ?? '',
+    resume_id: initial?.resume_id ?? null,
   }
 }
 
@@ -37,6 +40,7 @@ export function ApplicationFormModal({
   const [form, setForm] = useState<ApplicationInput>(toFormState(initial))
   const [strengthsInput, setStrengthsInput] = useState(form.strengths.join(', '))
   const [weaknessesInput, setWeaknessesInput] = useState(form.weaknesses.join(', '))
+  const { data: resumes } = useQuery({ queryKey: ['resumes'], queryFn: getResumes })
 
   function handleSubmit(event: FormEvent) {
     event.preventDefault()
@@ -152,6 +156,24 @@ export function ApplicationFormModal({
               value={form.job_description ?? ''}
               onChange={(e) => setForm({ ...form, job_description: e.target.value })}
             />
+          </label>
+
+          <label className="flex flex-col gap-1 text-sm text-slate-400">
+            Resume used
+            <select
+              className={inputClass}
+              value={form.resume_id ?? ''}
+              onChange={(e) =>
+                setForm({ ...form, resume_id: e.target.value ? Number(e.target.value) : null })
+              }
+            >
+              <option value="">None</option>
+              {resumes?.map((resume) => (
+                <option key={resume.id} value={resume.id}>
+                  {resume.filename} ({resume.ats_score}/100)
+                </option>
+              ))}
+            </select>
           </label>
 
           <div className="grid grid-cols-2 gap-3">

@@ -1,7 +1,3 @@
-import pytest
-
-from app.services import resume_service
-
 SAMPLE_RESUME = """
 Jane Student
 jane.student@example.com | (555) 123-4567
@@ -19,11 +15,6 @@ Python, React, SQL, Git
 """.strip()
 
 SAMPLE_JOB_DESCRIPTION = "Looking for an intern experienced with Python, React, and SQL."
-
-
-@pytest.fixture(autouse=True)
-def _isolate_uploads(monkeypatch, tmp_path):
-    monkeypatch.setattr(resume_service, "UPLOAD_DIR", tmp_path / "resumes")
 
 
 def _upload(client, text=SAMPLE_RESUME, job_description=SAMPLE_JOB_DESCRIPTION, filename="resume.txt"):
@@ -91,10 +82,10 @@ def test_delete_resume(auth_client):
 
 
 def test_resume_isolated_between_users(client):
-    client.post("/auth/register", json={"email": "resA@example.com", "password": "password123"})
+    client.post("/auth/register", json={"email": "resA@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
     created = _upload(client).json()
 
-    client.post("/auth/register", json={"email": "resB@example.com", "password": "password123"})
+    client.post("/auth/register", json={"email": "resB@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
 
     assert client.get(f"/resumes/{created['id']}").status_code == 404
     assert client.get("/resumes").json() == []
