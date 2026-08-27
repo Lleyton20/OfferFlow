@@ -5,16 +5,26 @@ from app.models.application import Application
 from app.schemas.application import ApplicationCreate, ApplicationUpdate
 
 
-def list_applications(db: Session) -> list[Application]:
-    return list(db.scalars(select(Application).order_by(Application.created_at.desc())))
+def list_applications(db: Session, user_id: int) -> list[Application]:
+    return list(
+        db.scalars(
+            select(Application)
+            .where(Application.user_id == user_id)
+            .order_by(Application.created_at.desc())
+        )
+    )
 
 
-def get_application(db: Session, application_id: int) -> Application | None:
-    return db.get(Application, application_id)
+def get_application(db: Session, user_id: int, application_id: int) -> Application | None:
+    return db.scalar(
+        select(Application).where(
+            Application.id == application_id, Application.user_id == user_id
+        )
+    )
 
 
-def create_application(db: Session, data: ApplicationCreate) -> Application:
-    application = Application(**data.model_dump())
+def create_application(db: Session, user_id: int, data: ApplicationCreate) -> Application:
+    application = Application(user_id=user_id, **data.model_dump())
     db.add(application)
     db.commit()
     db.refresh(application)

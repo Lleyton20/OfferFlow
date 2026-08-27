@@ -27,3 +27,11 @@ def client(tmp_path):
     with TestClient(app) as test_client:
         yield test_client
     app.dependency_overrides.clear()
+
+
+@pytest.fixture()
+def auth_client(client):
+    client.post(
+        "/auth/register", json={"email": "student@example.com", "password": "password123"}
+    )
+    return client

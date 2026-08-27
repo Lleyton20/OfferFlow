@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { useState, type FormEvent } from 'react'
 import { APPLICATION_STATUSES, type Application, type ApplicationInput } from '../types/application'
 
@@ -23,6 +24,9 @@ function toFormState(initial?: Application): ApplicationInput {
     notes: initial?.notes ?? '',
   }
 }
+
+const inputClass =
+  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/30'
 
 export function ApplicationFormModal({
   initial,
@@ -53,27 +57,40 @@ export function ApplicationFormModal({
   }
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-      <div className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-xl bg-white p-6 shadow-xl">
-        <h2 className="mb-4 text-lg font-semibold text-slate-900">
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      onClick={onClose}
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: 12 }}
+        transition={{ duration: 0.2, ease: 'easeOut' }}
+        onClick={(e) => e.stopPropagation()}
+        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
+      >
+        <h2 className="mb-4 text-lg font-semibold text-white">
           {initial ? 'Edit Application' : 'Add Application'}
         </h2>
         <form onSubmit={handleSubmit} className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-600">
+            <label className="flex flex-col gap-1 text-sm text-slate-400">
               Company
               <input
                 required
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
                 value={form.company}
                 onChange={(e) => setForm({ ...form, company: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-600">
+            <label className="flex flex-col gap-1 text-sm text-slate-400">
               Role
               <input
                 required
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
               />
@@ -81,22 +98,22 @@ export function ApplicationFormModal({
           </div>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-600">
+            <label className="flex flex-col gap-1 text-sm text-slate-400">
               Date Applied
               <input
                 required
                 type="date"
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
                 value={form.date_applied}
                 onChange={(e) => setForm({ ...form, date_applied: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-600">
+            <label className="flex flex-col gap-1 text-sm text-slate-400">
               Status
               <input
                 list="status-options"
                 required
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
               />
@@ -108,28 +125,29 @@ export function ApplicationFormModal({
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-400">
             Contact Person
             <input
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={inputClass}
               value={form.contact_person ?? ''}
               onChange={(e) => setForm({ ...form, contact_person: e.target.value })}
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-slate-600">
+          <label className="flex items-center gap-2 text-sm text-slate-400">
             <input
               type="checkbox"
               checked={form.referral_used}
               onChange={(e) => setForm({ ...form, referral_used: e.target.checked })}
+              className="h-4 w-4 rounded border-slate-700 bg-slate-950 accent-indigo-500"
             />
             Referral used
           </label>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-400">
             Job Description
             <textarea
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={inputClass}
               rows={2}
               value={form.job_description ?? ''}
               onChange={(e) => setForm({ ...form, job_description: e.target.value })}
@@ -137,31 +155,31 @@ export function ApplicationFormModal({
           </label>
 
           <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-600">
+            <label className="flex flex-col gap-1 text-sm text-slate-400">
               Strengths (comma-separated)
               <input
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
                 value={strengthsInput}
                 onChange={(e) => setStrengthsInput(e.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-600">
+            <label className="flex flex-col gap-1 text-sm text-slate-400">
               Weaknesses (comma-separated)
               <input
-                className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+                className={inputClass}
                 value={weaknessesInput}
                 onChange={(e) => setWeaknessesInput(e.target.value)}
               />
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-400">
             Match Score (0-10)
             <input
               type="number"
               min={0}
               max={10}
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={inputClass}
               value={form.match_score ?? ''}
               onChange={(e) =>
                 setForm({
@@ -172,10 +190,10 @@ export function ApplicationFormModal({
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-600">
+          <label className="flex flex-col gap-1 text-sm text-slate-400">
             Notes
             <textarea
-              className="rounded-md border border-slate-300 px-3 py-2 text-sm"
+              className={inputClass}
               rows={2}
               value={form.notes ?? ''}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
@@ -186,20 +204,22 @@ export function ApplicationFormModal({
             <button
               type="button"
               onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-100"
+              className="rounded-md px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
             >
               Cancel
             </button>
-            <button
+            <motion.button
+              whileHover={{ scale: 1.03 }}
+              whileTap={{ scale: 0.97 }}
               type="submit"
               disabled={isSaving}
-              className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-500 disabled:opacity-60"
+              className="rounded-md bg-indigo-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-indigo-500/25 transition hover:bg-indigo-400 disabled:opacity-60"
             >
               {isSaving ? 'Saving…' : 'Save'}
-            </button>
+            </motion.button>
           </div>
         </form>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

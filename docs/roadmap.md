@@ -8,11 +8,11 @@ Application Tracking System
 - [x] Status management (7 standard statuses + custom/free-text status)
 - [x] Dashboard view (Kanban board grouped by status)
 
-## Phase 2 — Authentication & User Accounts
-- [ ] User registration
-- [ ] Login
-- [ ] Session management
-- [ ] Protected routes
+## Phase 2 — Authentication & User Accounts ✅ done
+- [x] User registration
+- [x] Login
+- [x] Session management (JWT in an httpOnly cookie)
+- [x] Protected routes (applications are now scoped per-user)
 
 ## Phase 3 — Resume Intelligence
 - [ ] Resume uploads
