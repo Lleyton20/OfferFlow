@@ -286,6 +286,39 @@ offerflow/
 
 ---
 
+## Getting Started
+
+### Backend
+
+```bash
+cd backend
+python3 -m venv venv
+source venv/bin/activate      # Windows: venv\Scripts\activate
+pip install -r requirements.txt
+cp .env.example .env          # defaults to SQLite, no changes needed for local dev
+uvicorn app.main:app --reload
+```
+
+The API runs at `http://localhost:8000` (interactive docs at `/docs`) and
+persists to `backend/offerflow.db` (SQLite). To use Postgres instead, set
+`DATABASE_URL` in `.env` — see [docs/architecture.md](docs/architecture.md).
+
+Run the test suite with `pytest` (from `backend/`, with the venv activated).
+
+### Frontend
+
+```bash
+cd frontend
+npm install
+cp .env.example .env          # defaults to http://localhost:8000
+npm run dev
+```
+
+The app runs at `http://localhost:5173` and expects the backend above to be
+running.
+
+---
+
 ## Long-Term Vision
 
 OfferFlow aims to become the operating system for career development by combining:

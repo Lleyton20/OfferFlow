@@ -1,54 +1,33 @@
+import os
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(title="OfferFlow API")
-
-
-class Application(BaseModel):
-    company: str
-    role: str
-    date_applied: str
-    status: str
-    referral_used: bool
-    contact_person: str | None = None
-    job_description: str | None = None
-    match_score: int | None = None
-    strengths: list[str] = []
-    weaknesses: list[str] = []
-    notes: str | None = None
+from app.api.applications import router as applications_router
+from app.database import Base, engine
 
 
-applications = [
-    {
-        "id": 1,
-        "company": "Google",
-        "role": "Software Engineering Intern",
-        "date_applied": "2026-06-18",
-        "status": "Applied",
-        "referral_used": True,
-        "contact_person": "John Smith",
-        "job_description": "Build scalable software systems using Python, C++, and distributed systems.",
-        "match_score": 7,
-        "strengths": ["Python", "React", "Research experience"],
-        "weaknesses": ["Distributed systems", "System design"],
-        "notes": "Need to follow up about referral."
-    }
-]
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    Base.metadata.create_all(bind=engine)
+    yield
+
+
+app = FastAPI(title="OfferFlow API", lifespan=lifespan)
+
+cors_origins = os.getenv("CORS_ORIGINS", "http://localhost:5173").split(",")
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(applications_router)
 
 
 @app.get("/")
 def root():
     return {"message": "OfferFlow API is running"}
-
-
-@app.get("/applications")
-def get_applications():
-    return applications
-
-
-@app.post("/applications")
-def create_application(application: Application):
-    new_application = application.model_dump()
-    new_application["id"] = len(applications) + 1
-    applications.append(new_application)
-    return new_application
