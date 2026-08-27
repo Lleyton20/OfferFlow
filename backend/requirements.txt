@@ -5,5 +5,8 @@ pydantic[email]
 python-dotenv
 pyjwt
 bcrypt
+python-multipart
+pypdf
+anthropic
 pytest
 httpx

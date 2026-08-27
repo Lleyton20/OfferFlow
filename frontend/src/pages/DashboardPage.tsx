@@ -1,6 +1,7 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { Link } from 'react-router-dom'
 import {
   createApplication,
   deleteApplication,
@@ -75,6 +76,9 @@ export function DashboardPage() {
             <p className="text-sm text-slate-500">From Application to Offer.</p>
           </div>
           <div className="flex items-center gap-4">
+            <Link to="/resumes" className="text-sm text-slate-400 transition hover:text-slate-200">
+              Resumes
+            </Link>
             {user && <span className="text-sm text-slate-400">{user.email}</span>}
             <motion.button
               whileHover={{ scale: 1.03 }}

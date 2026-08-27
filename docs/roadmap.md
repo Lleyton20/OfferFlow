@@ -14,10 +14,11 @@ Application Tracking System
 - [x] Session management (JWT in an httpOnly cookie)
 - [x] Protected routes (applications are now scoped per-user)
 
-## Phase 3 — Resume Intelligence
-- [ ] Resume uploads
-- [ ] AI feedback
-- [ ] ATS scoring
+## Phase 3 — Resume Intelligence ✅ done
+- [x] Resume uploads (PDF or plain text)
+- [x] AI feedback (Claude, degrades gracefully without an API key)
+- [x] ATS scoring (rule-based: contact info, quantifiable achievements, length, standard sections, keyword match against a pasted job description)
+- [x] Resume version management (upload history, delete old versions)
 
 ## Phase 4 — Networking CRM
 - [ ] Recruiter tracking

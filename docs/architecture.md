@@ -57,6 +57,39 @@ requirements.
   (`CORS_ORIGINS`), which is required for cookies to work with
   `allow_credentials=True` — a wildcard origin isn't allowed.
 
+## Resume Intelligence
+
+- **`models/resume.py`** — `Resume`: uploaded file metadata, extracted text,
+  the optional job description pasted alongside it, ATS scoring results, and
+  AI feedback (all owned by a `user_id`, same ownership pattern as
+  `Application`).
+- **`services/resume_service.py`** — file handling and scoring, no AI calls:
+  - `extract_text` — `pypdf` for `application/pdf`, plain decode for
+    `text/plain`.
+  - `score_resume` — deterministic, rule-based ATS score (0-100): contact
+    info present, quantifiable achievements (numbers/%/$ in the text),
+    resume length in a reasonable word-count range, standard section headers
+    detected, and — when a job description is supplied — keyword overlap
+    between the two. Returns per-check pass/fail detail plus matched/missing
+    keyword lists, so the score is always explainable, never a black box.
+  - `save_upload`/`delete_file` — stores the raw file under
+    `backend/uploads/resumes/<user_id>/` (gitignored, local-disk only for
+    now — see Postgres note above for the equivalent future swap to object
+    storage).
+- **`services/ai_feedback_service.py`** — the one place that calls an LLM.
+  Uses the `anthropic` SDK's `client.messages.parse(..., output_format=AIFeedback)`
+  to get a validated `strengths`/`weaknesses`/`suggestions`/`overall_summary`
+  object back directly, no manual JSON parsing. Model is `claude-opus-5` by
+  default, overridable via `ANTHROPIC_MODEL`. **Degrades gracefully**: if no
+  Anthropic credentials are configured, the resume is still scored and saved
+  — `ai_feedback` is just `null` with `ai_feedback_status: "not_configured"`
+  instead of the request failing.
+- **`api/resumes.py`** — `POST /resumes` (multipart: `file` + optional
+  `job_description` form field) runs extraction → scoring → AI feedback →
+  storage → save, in that order, and returns the full `ResumeRead` in one
+  response (no polling/async job needed at this scale). `GET`/`DELETE` follow
+  the same per-user ownership + `404` pattern as applications.
+
 ## Frontend
 
 - **`api/client.ts`** — shared `apiFetch` wrapper: always sends
@@ -70,7 +103,8 @@ requirements.
 - **`components/ProtectedRoute.tsx`** — redirects to `/login` when there's no
   authenticated user; used to gate the dashboard route in `App.tsx`.
 - **`pages/`** — `LoginPage`, `RegisterPage`, `DashboardPage` (the Kanban
-  board + add/edit modal, previously all of `App.tsx`).
+  board + add/edit modal, previously all of `App.tsx`), `ResumesPage` (upload
+  form + `ResumeCard` list with an expandable ATS/AI-feedback breakdown).
 - **`types/`** — TypeScript types mirroring backend Pydantic schemas.
 - Data fetching/caching goes through **React Query** — no manual `useEffect`
   fetch/loading-state plumbing.

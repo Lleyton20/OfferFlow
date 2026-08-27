@@ -68,3 +68,47 @@ All endpoints operate only on the authenticated user's own applications
 else has a default (`status: "Applied"`, `referral_used: false`, empty
 lists/nulls). `ApplicationUpdate` makes every field optional for partial
 updates (e.g. just `{"status": "Offer"}`).
+
+## `Resume`
+
+```jsonc
+{
+  "id": 1,
+  "filename": "resume.pdf",
+  "job_description": "Looking for an intern...",  // nullable — only if pasted at upload time
+  "ats_score": 65,                                 // 0-100
+  "ats_checks": [
+    { "check": "Contact info", "passed": true, "detail": "Email address found." },
+    { "check": "Keyword match", "passed": true, "detail": "Matched 3 of 6 keywords from the job description." }
+  ],
+  "matched_keywords": ["intern", "python", "react"],
+  "missing_keywords": ["experienced", "sql"],
+  "ai_feedback": {                                 // null if ai_feedback_status != "ok"
+    "overall_summary": "...",
+    "strengths": ["..."],
+    "weaknesses": ["..."],
+    "suggestions": ["..."]
+  },
+  "ai_feedback_status": "ok",                      // "ok" | "not_configured" | "error"
+  "created_at": "2026-08-27T05:30:55.214358+00:00"
+}
+```
+
+### Endpoints
+
+| Method | Path              | Body                                            | Response         | Notes |
+|--------|-------------------|--------------------------------------------------|-------------------|-------|
+| GET    | `/resumes`        | —                                                 | `Resume[]`        | Newest first |
+| POST   | `/resumes`        | multipart: `file` (PDF or `.txt`) + optional `job_description` | `Resume` (201) | `400` on unsupported file type, file > 5MB, or no extractable text |
+| GET    | `/resumes/{id}`   | —                                                 | `Resume`          | 404 if missing or owned by another user |
+| DELETE | `/resumes/{id}`   | —                                                 | — (204)           | 404 if missing or owned by another user; also deletes the stored file |
+
+ATS scoring is deterministic and rule-based (no AI call): contact info,
+quantifiable achievements, resume length, standard section headers, and —
+only when `job_description` is provided — keyword overlap between the resume
+and the job description.
+
+AI feedback (`ai_feedback` + `ai_feedback_status`) calls Claude and degrades
+gracefully: `"not_configured"` when no Anthropic credentials are set on the
+backend (the resume is still scored and saved), `"error"` on a transient API
+failure, `"ok"` with the populated `ai_feedback` object otherwise.
