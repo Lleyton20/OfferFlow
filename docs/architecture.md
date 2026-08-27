@@ -42,6 +42,71 @@ Postgres connection string. `database.py` normalizes both `postgres://` and
 string as given without editing it. See [deployment.md](deployment.md) for
 the Render setup this is built for.
 
+## Database Migrations (Alembic)
+
+Every schema change through Phase 5 was handled by deleting the local
+SQLite file and letting `Base.metadata.create_all()` (called on every app
+startup, in `main.py`'s lifespan handler) recreate it from scratch. That
+works for local dev but **does nothing to an existing table** —
+`create_all` only creates tables that don't exist yet; it never runs
+`ALTER TABLE`. Once this app had a real, persistent production database
+(Render Postgres), that approach would silently fail to apply any future
+column addition.
+
+- **`migrations/`** — Alembic setup. `env.py` points at `app.database`'s
+  `DATABASE_URL` and imports `app.models` so `Base.metadata` includes every
+  table before a migration runs.
+- **`0001_baseline`** — calls `Base.metadata.create_all(bind=op.get_bind())`
+  instead of hand-written `op.create_table()` calls. This is deliberately
+  idempotent: on a brand-new database it creates every table from the
+  current models in one shot; on the already-existing production database
+  it's a no-op, since every table it would create already exists.
+  `create_all`'s own `checkfirst=True` default is what makes this safe to
+  run repeatedly.
+- **Every migration after the baseline checks column existence before
+  adding one** (`sa.inspect(bind).get_columns(...)`), e.g.
+  `0002_add_user_reset_token_fields`. This matters because of a subtle
+  ordering issue: `render.yaml`'s `startCommand` runs
+  `alembic upgrade head` *before* `uvicorn` starts — deliberately, so a
+  schema change is applied before the app that depends on it boots. That
+  means on a fresh database, `0001`'s `create_all` will have already
+  created a column a later migration also tries to add (since `create_all`
+  always builds from *current* models, not a historical snapshot) — the
+  existence check is what keeps that from erroring, while still correctly
+  adding the column on an existing database that predates it.
+- **New tables never need a migration at all** — `create_all` already
+  handles "table doesn't exist yet, create it" on both fresh and existing
+  databases; Alembic is only needed for changes `create_all` can't express,
+  which in practice means adding a column to a table that's already live in
+  production.
+
+## Password Reset
+
+- **`User`** gained `reset_token_hash` and `reset_token_expires_at`
+  (nullable — most users never trigger a reset). Only the SHA-256 hash of
+  the token is stored, mirroring how passwords themselves are never stored
+  in plaintext; the raw token exists only in memory long enough to email it.
+- **`services/auth_service.py`** — `create_password_reset_token` (random
+  32-byte URL-safe token, 1-hour expiry), `get_user_by_reset_token`
+  (rejects expired or unknown tokens), `reset_password` (also clears the
+  token — single-use). Comparing `reset_token_expires_at` needed a small
+  fix: SQLite drops timezone info on read even for a `DateTime(timezone=True)`
+  column (Postgres doesn't), so a naive datetime read back from SQLite is
+  explicitly re-attached to UTC before comparing — otherwise local dev
+  raises `TypeError: can't compare offset-naive and offset-aware datetimes`
+  while production silently worked.
+- **`services/email_service.py`** — plain `smtplib`, no new dependency.
+  Degrades the same way every other optional integration in this app does:
+  no `SMTP_HOST`/`SMTP_USER`/`SMTP_PASSWORD` configured means
+  `send_password_reset_email` returns `False` and no email goes out — the
+  reset token is still created either way, and the API response is
+  identical regardless (see below), so this never leaks whether delivery
+  happened.
+- **`POST /auth/forgot-password` always returns `204`,** whether or not the
+  email belongs to an account. Revealing that distinction is a classic
+  account-enumeration leak; the frontend shows the same "check your email"
+  message either way.
+
 ## Authentication
 
 - **`models/user.py`** — `User` (email, bcrypt-hashed password, `full_name`,
@@ -105,6 +170,43 @@ the Render setup this is built for.
   storage → save, in that order, and returns the full `ResumeRead` in one
   response (no polling/async job needed at this scale). `GET`/`DELETE` follow
   the same per-user ownership + `404` pattern as applications.
+- **`POST /resumes/{id}/tailor`** — same `ai_feedback_service.py`, a second
+  function (`get_tailoring_suggestions`) and a second `output_format`
+  (`TailoringSuggestions`: rewritten summary, bullets to emphasize, missing
+  keywords, overall advice). Deliberately **not persisted** — a resume can
+  be tailored toward many different jobs, and storing every attempt would
+  need its own list-of-results model for a feature that's really just "run
+  this analysis again with different input." The frontend keeps the latest
+  result in local component state instead.
+
+## AI Career Assistant
+
+- **`models/chat.py`** — `ChatMessage` (`role`: `"user"` | `"assistant"`,
+  `content`, owned by `user_id`). One flat, ongoing thread per user — no
+  named/multiple conversations, which would need thread management UI this
+  feature doesn't need to justify yet.
+- **`services/assistant_service.py`** — `build_context_summary` is the part
+  that makes this an actual *career* assistant rather than a generic
+  chatbot: it pulls real counts and specifics from
+  `application_service`/`resume_service`/`contact_service`/`interview_service`
+  (active applications, latest resume score, overdue follow-ups, upcoming
+  interviews) into a compact text block injected as the system prompt's
+  context on every turn — the assistant answers about *this* job search,
+  not job searching in the abstract.
+- **`services/assistant_ai_service.py`** — uses `client.messages.create`
+  (not `.parse()` — this is free-form conversation, not structured
+  extraction) with the full message history. Unlike every other AI feature
+  in this app, a failure here becomes a normal assistant-role reply
+  ("AI isn't configured…") rather than a null/status field, since the chat
+  UI has nowhere to render a side-channel status — every turn just needs
+  *something* to show.
+- **`api/assistant.py`** — `POST /assistant/messages` saves the user's
+  message, then the last `MAX_HISTORY` (20) messages become the model's
+  context. One subtlety: Anthropic requires the first message in a request
+  to have role `"user"`, but slicing an alternating user/assistant sequence
+  to the last N messages can land on an assistant message first if N is
+  reached mid-pair — the endpoint drops a leading assistant message from
+  the slice to guarantee the required ordering.
 
 ## Networking CRM
 
@@ -237,7 +339,18 @@ the Render setup this is built for.
   timeline and inline "log a conversation" form), `InterviewPrepPage` (the
   static question bank alongside `InterviewSessionCard`s — each expandable
   to AI-generated mock questions, a study-plan textarea, and a
-  `StarRating` + reflection notes for after the interview).
+  `StarRating` + reflection notes for after the interview), `AssistantPage`
+  (a real chat UI — message bubbles, auto-scroll, suggested starter
+  questions on the empty state — not another one-shot AI form),
+  `ForgotPasswordPage`/`ResetPasswordPage` (the only two routes besides `/`
+  reachable while signed in *or* out — a password-reset email can arrive on
+  a browser that's still logged into a different account, so these
+  deliberately aren't wrapped in `GuestRoute`/`ProtectedRoute`).
+- **`components/StudentFigure.tsx`** — small hand-coded inline-SVG people
+  (a handful of poses/skin tones/outfit colors), used on the landing page
+  instead of real photos (no consent/licensing path for actual student
+  photos) or initials-in-a-circle (the placeholder this replaced — visually
+  fine but did nothing to make the page feel less templated).
 - **`types/`** — TypeScript types mirroring backend Pydantic schemas.
 - Data fetching/caching goes through **React Query** — no manual `useEffect`
   fetch/loading-state plumbing.

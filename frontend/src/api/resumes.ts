@@ -1,4 +1,4 @@
-import type { Resume } from '../types/resume'
+import type { Resume, TailorResponse } from '../types/resume'
 import { apiFetch } from './client'
 
 export function getResumes(): Promise<Resume[]> {
@@ -20,4 +20,11 @@ export function uploadResume(file: File, jobDescription: string): Promise<Resume
 
 export function deleteResume(id: number): Promise<void> {
   return apiFetch(`/resumes/${id}`, { method: 'DELETE' })
+}
+
+export function tailorResume(id: number, jobDescription: string): Promise<TailorResponse> {
+  return apiFetch(`/resumes/${id}/tailor`, {
+    method: 'POST',
+    body: JSON.stringify({ job_description: jobDescription }),
+  })
 }

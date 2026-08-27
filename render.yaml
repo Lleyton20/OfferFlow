@@ -5,7 +5,7 @@ services:
     plan: free
     rootDir: backend
     buildCommand: pip install -r requirements.txt
-    startCommand: uvicorn app.main:app --host 0.0.0.0 --port $PORT
+    startCommand: alembic upgrade head && uvicorn app.main:app --host 0.0.0.0 --port $PORT
     envVars:
       - key: DATABASE_URL
         fromDatabase:
@@ -23,6 +23,18 @@ services:
         sync: false
       - key: ANTHROPIC_MODEL
         value: claude-opus-5
+      - key: FRONTEND_URL
+        value: "https://CHANGE-ME.vercel.app"
+      - key: SMTP_HOST
+        sync: false
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USER
+        sync: false
+      - key: SMTP_PASSWORD
+        sync: false
+      - key: SMTP_FROM
+        sync: false
 
 databases:
   - name: offerflow-db

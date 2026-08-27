@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
+import { StudentFigure } from '../components/StudentFigure'
 import { APPLICATION_STATUSES } from '../types/application'
 
 const FEATURES = [
@@ -35,13 +36,18 @@ const STEPS = [
   { title: 'Sharpen your resume', body: 'ATS scoring and AI feedback for every version, against every JD.' },
 ]
 
-const STUDENT_AVATARS = [
-  { initials: 'CS', gradient: 'from-emerald-400 to-teal-500', label: 'Computer Science' },
-  { initials: 'BA', gradient: 'from-sky-400 to-emerald-500', label: 'Business' },
-  { initials: 'EE', gradient: 'from-amber-400 to-orange-500', label: 'Engineering' },
-  { initials: 'DS', gradient: 'from-teal-400 to-sky-500', label: 'Data Science' },
-  { initials: 'MK', gradient: 'from-emerald-400 to-sky-500', label: 'Marketing' },
-  { initials: 'FIN', gradient: 'from-amber-400 to-teal-500', label: 'Finance' },
+const STUDENT_FIGURES: {
+  pose: 'laptop' | 'walking' | 'celebrating' | 'reading'
+  skinTone: string
+  outfit: string
+  label: string
+}[] = [
+  { pose: 'laptop', skinTone: '#c68863', outfit: '#10b981', label: 'Computer Science' },
+  { pose: 'walking', skinTone: '#8d5524', outfit: '#0ea5e9', label: 'Business' },
+  { pose: 'celebrating', skinTone: '#f1c27d', outfit: '#f59e0b', label: 'Engineering' },
+  { pose: 'reading', skinTone: '#e0ac69', outfit: '#14b8a6', label: 'Data Science' },
+  { pose: 'laptop', skinTone: '#5c3a21', outfit: '#f59e0b', label: 'Marketing' },
+  { pose: 'walking', skinTone: '#f1c27d', outfit: '#10b981', label: 'Finance' },
 ]
 
 export function LandingPage() {
@@ -180,30 +186,35 @@ export function LandingPage() {
             </p>
           </div>
 
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6">
-            {STUDENT_AVATARS.map((avatar, i) => (
+          <div className="mt-8 flex flex-wrap items-end justify-center gap-6">
+            {STUDENT_FIGURES.map((figure, i) => (
               <motion.div
-                key={avatar.initials}
+                key={`${figure.pose}-${i}`}
                 initial={{ opacity: 0, y: 12, scale: 0.9 }}
                 whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true, margin: '-40px' }}
                 transition={{ duration: 0.35, delay: i * 0.06 }}
-                className="flex flex-col items-center gap-2"
+                className="flex flex-col items-center gap-1.5"
               >
                 <motion.div
-                  animate={{ y: [0, -5, 0] }}
+                  animate={{ y: [0, -6, 0] }}
                   transition={{
                     duration: 3 + (i % 3) * 0.4,
                     repeat: Infinity,
                     ease: 'easeInOut',
                     delay: i * 0.2,
                   }}
-                  whileHover={{ scale: 1.1 }}
-                  className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br text-sm font-bold text-white shadow-lg ${avatar.gradient}`}
+                  whileHover={{ scale: 1.12 }}
+                  className="rounded-2xl bg-slate-900/60 p-2 shadow-lg ring-1 ring-inset ring-slate-800"
                 >
-                  {avatar.initials}
+                  <StudentFigure
+                    pose={figure.pose}
+                    skinTone={figure.skinTone}
+                    outfit={figure.outfit}
+                    className="h-16 w-16"
+                  />
                 </motion.div>
-                <span className="text-xs text-slate-500">{avatar.label}</span>
+                <span className="text-xs text-slate-500">{figure.label}</span>
               </motion.div>
             ))}
           </div>

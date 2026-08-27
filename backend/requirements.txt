@@ -11,3 +11,4 @@ pypdf
 anthropic
 pytest
 httpx
+alembic

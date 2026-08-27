@@ -1,6 +1,9 @@
+import { useMutation } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
+import { tailorResume } from '../api/resumes'
 import type { Resume } from '../types/resume'
+import { LoadingSpinner } from './LoadingSpinner'
 
 function scoreColor(score: number) {
   if (score >= 80) return 'text-emerald-400 bg-emerald-500/10'
@@ -15,6 +18,10 @@ interface ResumeCardProps {
 
 export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
   const [expanded, setExpanded] = useState(false)
+  const [tailorJD, setTailorJD] = useState('')
+  const tailorMutation = useMutation({
+    mutationFn: (jobDescription: string) => tailorResume(resume.id, jobDescription),
+  })
 
   return (
     <motion.div
@@ -164,6 +171,77 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
                   <p className="text-sm text-slate-500">
                     AI feedback was temporarily unavailable for this upload.
                   </p>
+                )}
+              </div>
+
+              <div className="border-t border-slate-800 pt-4">
+                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  Tailor For A Job
+                </h4>
+                <div className="flex gap-2">
+                  <textarea
+                    placeholder="Paste a job description to tailor this resume toward…"
+                    rows={2}
+                    value={tailorJD}
+                    onChange={(e) => setTailorJD(e.target.value)}
+                    className="flex-1 rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                  />
+                  <button
+                    onClick={() => tailorJD.trim() && tailorMutation.mutate(tailorJD.trim())}
+                    disabled={!tailorJD.trim() || tailorMutation.isPending}
+                    className="self-start rounded-md bg-emerald-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-400 disabled:opacity-50"
+                  >
+                    Tailor
+                  </button>
+                </div>
+
+                {tailorMutation.isPending && (
+                  <div className="mt-3">
+                    <LoadingSpinner label="Tailoring…" />
+                  </div>
+                )}
+
+                {tailorMutation.data && (
+                  <div className="mt-3 space-y-2 rounded-lg bg-slate-950/50 p-3 text-sm">
+                    {tailorMutation.data.status === 'ok' && tailorMutation.data.suggestions ? (
+                      <>
+                        <div>
+                          <p className="font-medium text-emerald-400">Rewritten Summary</p>
+                          <p className="text-slate-300">
+                            {tailorMutation.data.suggestions.summary_rewrite}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="font-medium text-sky-400">Bullets To Emphasize</p>
+                          <ul className="ml-4 list-disc text-slate-400">
+                            {tailorMutation.data.suggestions.bullets_to_emphasize.map((b) => (
+                              <li key={b}>{b}</li>
+                            ))}
+                          </ul>
+                        </div>
+                        <div>
+                          <p className="font-medium text-amber-400">Keywords To Add</p>
+                          <div className="mt-1 flex flex-wrap gap-1.5">
+                            {tailorMutation.data.suggestions.keywords_to_add.map((k) => (
+                              <span
+                                key={k}
+                                className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400"
+                              >
+                                {k}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-slate-400">{tailorMutation.data.suggestions.overall_advice}</p>
+                      </>
+                    ) : (
+                      <p className="text-slate-500">
+                        {tailorMutation.data.status === 'not_configured'
+                          ? "AI tailoring isn't configured — set ANTHROPIC_API_KEY on the backend to enable it."
+                          : 'Tailoring was temporarily unavailable — try again.'}
+                      </p>
+                    )}
+                  </div>
                 )}
               </div>
             </div>

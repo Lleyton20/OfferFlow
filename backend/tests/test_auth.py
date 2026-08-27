@@ -74,6 +74,86 @@ def test_register_rejects_future_birthday(client):
     assert response.status_code == 422
 
 
+def test_forgot_password_always_returns_204(client):
+    # No account exists for this email — must not leak that via the response.
+    response = client.post("/auth/forgot-password", json={"email": "nobody@example.com"})
+    assert response.status_code == 204
+
+
+def test_forgot_password_without_smtp_configured_does_not_error(client):
+    client.post(
+        "/auth/register",
+        json={"email": "reset1@example.com", "password": "password123", "full_name": "R One", "birthday": "2000-01-01"},
+    )
+    response = client.post("/auth/forgot-password", json={"email": "reset1@example.com"})
+    assert response.status_code == 204
+
+
+def test_reset_password_with_invalid_token_rejected(client):
+    response = client.post(
+        "/auth/reset-password", json={"token": "not-a-real-token", "new_password": "newpassword123"}
+    )
+    assert response.status_code == 400
+
+
+def test_full_reset_flow_with_smtp_mocked(client, monkeypatch):
+    sent = {}
+
+    class FakeSMTP:
+        def __init__(self, host, port):
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args):
+            return False
+
+        def starttls(self):
+            pass
+
+        def login(self, user, password):
+            pass
+
+        def send_message(self, message):
+            sent["body"] = message.get_content()
+
+    import app.services.email_service as email_service
+
+    monkeypatch.setattr(email_service, "IS_CONFIGURED", True)
+    monkeypatch.setattr(email_service.smtplib, "SMTP", FakeSMTP)
+
+    client.post(
+        "/auth/register",
+        json={"email": "reset2@example.com", "password": "oldpassword123", "full_name": "R Two", "birthday": "2000-01-01"},
+    )
+    client.cookies.clear()
+
+    forgot = client.post("/auth/forgot-password", json={"email": "reset2@example.com"})
+    assert forgot.status_code == 204
+    assert "reset-password?token=" in sent["body"]
+    token = sent["body"].split("token=")[1].split("\n")[0].strip()
+
+    reset = client.post(
+        "/auth/reset-password", json={"token": token, "new_password": "newpassword123"}
+    )
+    assert reset.status_code == 204
+
+    # Old password no longer works, new one does.
+    assert client.post(
+        "/auth/login", json={"email": "reset2@example.com", "password": "oldpassword123"}
+    ).status_code == 401
+    assert client.post(
+        "/auth/login", json={"email": "reset2@example.com", "password": "newpassword123"}
+    ).status_code == 200
+
+    # Token is single-use.
+    reused = client.post(
+        "/auth/reset-password", json={"token": token, "new_password": "anotherpassword123"}
+    )
+    assert reused.status_code == 400
+
+
 def test_register_stores_profile_fields(client):
     response = client.post(
         "/auth/register",

@@ -81,6 +81,25 @@ def test_delete_resume(auth_client):
     assert auth_client.get(f"/resumes/{created['id']}").status_code == 404
 
 
+def test_tailor_resume_degrades_without_api_key(auth_client):
+    created = _upload(auth_client, job_description=None).json()
+
+    response = auth_client.post(
+        f"/resumes/{created['id']}/tailor",
+        json={"job_description": "Looking for a Python backend intern."},
+    )
+    assert response.status_code == 200
+    body = response.json()
+    assert body["status"] in {"not_configured", "ok", "error"}
+    if body["status"] != "ok":
+        assert body["suggestions"] is None
+
+
+def test_tailor_resume_not_found(auth_client):
+    response = auth_client.post("/resumes/999/tailor", json={"job_description": "Anything"})
+    assert response.status_code == 404
+
+
 def test_resume_isolated_between_users(client):
     client.post("/auth/register", json={"email": "resA@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
     created = _upload(client).json()

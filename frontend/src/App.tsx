@@ -4,13 +4,16 @@ import { GuestRoute } from './components/GuestRoute'
 import { PageFade } from './components/PageFade'
 import { ProtectedRoute } from './components/ProtectedRoute'
 import { AnalyticsPage } from './pages/AnalyticsPage'
+import { AssistantPage } from './pages/AssistantPage'
 import { ContactsPage } from './pages/ContactsPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { ForgotPasswordPage } from './pages/ForgotPasswordPage'
 import { HistoryPage } from './pages/HistoryPage'
 import { InterviewPrepPage } from './pages/InterviewPrepPage'
 import { LandingPage } from './pages/LandingPage'
 import { LoginPage } from './pages/LoginPage'
 import { RegisterPage } from './pages/RegisterPage'
+import { ResetPasswordPage } from './pages/ResetPasswordPage'
 import { ResumesPage } from './pages/ResumesPage'
 
 function App() {
@@ -47,6 +50,22 @@ function App() {
                 <RegisterPage />
               </PageFade>
             </GuestRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <PageFade>
+              <ForgotPasswordPage />
+            </PageFade>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <PageFade>
+              <ResetPasswordPage />
+            </PageFade>
           }
         />
         <Route
@@ -95,6 +114,16 @@ function App() {
             <ProtectedRoute>
               <PageFade>
                 <InterviewPrepPage />
+              </PageFade>
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/assistant"
+          element={
+            <ProtectedRoute>
+              <PageFade>
+                <AssistantPage />
               </PageFade>
             </ProtectedRoute>
           }

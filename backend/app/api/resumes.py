@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_current_user
 from app.database import get_db
 from app.models.user import User
-from app.schemas.resume import ResumeRead
+from app.schemas.resume import ResumeRead, TailorRequest, TailorResponse
 from app.services import ai_feedback_service, resume_service
 
 router = APIRouter(prefix="/resumes", tags=["resumes"])
@@ -90,3 +90,17 @@ def delete_resume(
 ):
     resume = _get_resume_or_404(db, current_user.id, resume_id)
     resume_service.delete_resume(db, resume)
+
+
+@router.post("/{resume_id}/tailor", response_model=TailorResponse)
+def tailor_resume(
+    resume_id: int,
+    data: TailorRequest,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    resume = _get_resume_or_404(db, current_user.id, resume_id)
+    suggestions, status = ai_feedback_service.get_tailoring_suggestions(
+        resume.extracted_text, data.job_description
+    )
+    return TailorResponse(suggestions=suggestions, status=status)

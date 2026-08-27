@@ -16,6 +16,22 @@ class AIFeedback(BaseModel):
     suggestions: list[str]
 
 
+class TailorRequest(BaseModel):
+    job_description: str
+
+
+class TailoringSuggestions(BaseModel):
+    summary_rewrite: str
+    bullets_to_emphasize: list[str]
+    keywords_to_add: list[str]
+    overall_advice: str
+
+
+class TailorResponse(BaseModel):
+    suggestions: TailoringSuggestions | None
+    status: str
+
+
 class ResumeRead(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 

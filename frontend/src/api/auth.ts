@@ -30,3 +30,14 @@ export function logout(): Promise<void> {
 export function getMe(): Promise<User> {
   return apiFetch('/auth/me')
 }
+
+export function forgotPassword(email: string): Promise<void> {
+  return apiFetch('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) })
+}
+
+export function resetPassword(token: string, newPassword: string): Promise<void> {
+  return apiFetch('/auth/reset-password', {
+    method: 'POST',
+    body: JSON.stringify({ token, new_password: newPassword }),
+  })
+}

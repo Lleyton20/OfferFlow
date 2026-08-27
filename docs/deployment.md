@@ -15,9 +15,19 @@ repo, no CLI needed.
 4. Once it's live, copy the service's public URL (e.g.
    `https://offerflow-backend.onrender.com`) — you'll need it in step 2.
 5. Optional: open the service's **Environment** tab and set
-   `ANTHROPIC_API_KEY` if you want AI resume feedback to actually run in
-   production (it degrades gracefully without it — see
-   [api-design.md](api-design.md)).
+   `ANTHROPIC_API_KEY` if you want AI resume feedback, mock interviews,
+   resume tailoring, and the career assistant to actually run in production
+   (all of them degrade gracefully without it).
+6. Optional: also on **Environment**, set `SMTP_HOST`/`SMTP_USER`/
+   `SMTP_PASSWORD`/`SMTP_FROM` if you want "forgot password" to actually
+   send an email (e.g. Gmail with an **App Password**, not your normal
+   password). Without these, reset tokens are still created — there's just
+   no way to deliver them to the user.
+7. `startCommand` runs `alembic upgrade head` before starting the server —
+   every deploy applies any pending schema migration automatically. See
+   [architecture.md](architecture.md#database-migrations-alembic) if a
+   deploy fails here; it almost always means a new migration wasn't written
+   idempotently.
 
 ## 2. Frontend (Vercel)
 
@@ -33,10 +43,14 @@ repo, no CLI needed.
 
 ## 3. Connect the two
 
-Back on Render: open the backend service → **Environment** → update
-`CORS_ORIGINS` from the `render.yaml` placeholder to your actual Vercel URL
-from step 2. Save — Render redeploys automatically. Without this step,
-the browser will block every request from the deployed frontend (CORS).
+Back on Render: open the backend service → **Environment** → update both
+placeholder values to your actual Vercel URL from step 2:
+- `CORS_ORIGINS` — without this, the browser blocks every request from the
+  deployed frontend (CORS).
+- `FRONTEND_URL` — used to build the link inside password-reset emails; if
+  this is wrong, reset emails point at the wrong site.
+
+Save — Render redeploys automatically.
 
 ## 4. Verify
 

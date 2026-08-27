@@ -6,18 +6,29 @@ from sqlalchemy.orm import Session
 from app.api.deps import COOKIE_NAME, get_current_user
 from app.database import get_db
 from app.models.user import User
-from app.schemas.user import UserCreate, UserLogin, UserRead
+from app.schemas.user import (
+    ForgotPasswordRequest,
+    ResetPasswordRequest,
+    UserCreate,
+    UserLogin,
+    UserRead,
+)
+from app.services import email_service
 from app.services.auth_service import (
     JWT_EXPIRE_MINUTES,
     authenticate_user,
     create_access_token,
+    create_password_reset_token,
     get_user_by_email,
+    get_user_by_reset_token,
     register_user,
+    reset_password as reset_password_service,
 )
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
 COOKIE_MAX_AGE = JWT_EXPIRE_MINUTES * 60
+FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 
 # Local dev: frontend/backend are different ports on the same "localhost" site,
 # so Lax + non-Secure works over plain HTTP. Once deployed, frontend and backend
@@ -67,3 +78,22 @@ def logout(response: Response):
 @router.get("/me", response_model=UserRead)
 def me(current_user: User = Depends(get_current_user)):
     return current_user
+
+
+@router.post("/forgot-password", status_code=204)
+def forgot_password(data: ForgotPasswordRequest, db: Session = Depends(get_db)):
+    # Always returns 204 regardless of whether the email exists — revealing
+    # that would let anyone enumerate registered accounts.
+    user = get_user_by_email(db, data.email)
+    if user is not None:
+        token = create_password_reset_token(db, user)
+        reset_url = f"{FRONTEND_URL}/reset-password?token={token}"
+        email_service.send_password_reset_email(user.email, reset_url)
+
+
+@router.post("/reset-password", status_code=204)
+def reset_password(data: ResetPasswordRequest, db: Session = Depends(get_db)):
+    user = get_user_by_reset_token(db, data.token)
+    if user is None:
+        raise HTTPException(status_code=400, detail="Invalid or expired reset link")
+    reset_password_service(db, user, data.new_password)

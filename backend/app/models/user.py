@@ -20,4 +20,8 @@ class User(Base):
     birthday: Mapped[date | None] = mapped_column(Date, nullable=True)
     university: Mapped[str | None] = mapped_column(String, nullable=True)
     grad_year: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    reset_token_hash: Mapped[str | None] = mapped_column(String, nullable=True)
+    reset_token_expires_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

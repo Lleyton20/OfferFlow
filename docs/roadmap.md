@@ -67,8 +67,25 @@ Application Tracking System
 - [x] Interview performance history (1-5 star rating + reflection notes per
       session, rolled up into a summary tile on Analytics)
 
-## Phase 6 — OfferFlow AI
+## Phase 6 — OfferFlow AI (partial)
+- [x] AI-powered career assistant — a real conversation (`/assistant`), not a
+      one-shot form, with live context on the user's actual applications,
+      resumes, contacts, and interview prep. Degrades gracefully without an
+      API key, same pattern as every other AI feature.
+- [x] Resume tailoring — paste a job description against an existing resume
+      and get a rewritten summary, which bullets to emphasize, and which
+      keywords from the JD are missing (ephemeral — not persisted, since a
+      resume can be tailored toward many different jobs).
 - [ ] Career recommendations
-- [ ] Job matching
+- [ ] Job matching (would need a real job-listings data source this project
+      doesn't have — scoping this honestly is still open)
 - [ ] Personalized recruiting strategies
-- [ ] AI-powered career assistant
+
+## Account & Infrastructure Hardening (unplanned, added post-launch) ✅ done
+- [x] Forgot / reset password — token-based flow (1-hour expiry, single-use,
+      hashed at rest), email delivery via optional SMTP config, degrades to
+      "token created but not emailed" without it rather than failing
+- [x] Real database migrations (Alembic) — added after the first production
+      deploy revealed that every prior phase's "just recreate the local
+      SQLite file" schema-change approach silently breaks on the live
+      Postgres database, which doesn't get wiped between deploys

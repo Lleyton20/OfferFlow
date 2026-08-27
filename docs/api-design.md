@@ -24,6 +24,8 @@ httpOnly `access_token` cookie (set automatically by `/auth/register` and
 | POST   | `/auth/login`   | `{ "email", "password" }`      | `User`            | Sets the session cookie. `401` on bad credentials. |
 | POST   | `/auth/logout`  | —                               | — (204)           | Clears the session cookie. |
 | GET    | `/auth/me`      | —                               | `User`            | `401` if not logged in. |
+| POST   | `/auth/forgot-password` | `{ "email" }`          | — (204)           | Always `204`, whether or not the email exists — see architecture.md. Emails a reset link if SMTP is configured. |
+| POST   | `/auth/reset-password`  | `{ "token", "new_password" }` | — (204)     | `400` if the token is invalid, expired, or already used. |
 
 ## `Application`
 
@@ -116,6 +118,7 @@ updates (e.g. just `{"status": "Offer"}`).
 | POST   | `/resumes`        | multipart: `file` (PDF or `.txt`) + optional `job_description` | `Resume` (201) | `400` on unsupported file type, file > 5MB, or no extractable text |
 | GET    | `/resumes/{id}`   | —                                                 | `Resume`          | 404 if missing or owned by another user |
 | DELETE | `/resumes/{id}`   | —                                                 | — (204)           | 404 if missing or owned by another user; also deletes the stored file |
+| POST   | `/resumes/{id}/tailor` | `{ "job_description" }`                      | `{ "suggestions", "status" }` | `suggestions` is `null` unless `status` is `"ok"`. Not persisted — recomputed each call. |
 
 ATS scoring is deterministic and rule-based (no AI call): contact info,
 quantifiable achievements, resume length, standard section headers, and —
@@ -208,3 +211,23 @@ rather than failing the request.
 The static behavioral/situational/technical question bank shown alongside
 sessions in the UI isn't backend content — see
 [architecture.md](architecture.md#interview-preparation).
+
+## AI Career Assistant
+
+```jsonc
+{ "id": 12, "role": "assistant", "content": "You have 2 overdue follow-ups...", "created_at": "2026-08-27T05:30:55.214358+00:00" }
+```
+
+| Method | Path                  | Body              | Response          | Notes |
+|--------|-----------------------|--------------------|--------------------|-------|
+| GET    | `/assistant/messages` | —                  | `ChatMessage[]`    | Oldest first (chat order) |
+| POST   | `/assistant/messages` | `{ "content" }`    | `ChatMessage` (201) | Returns only the assistant's reply — the caller already has its own message |
+| DELETE | `/assistant/messages` | —                  | — (204)            | Clears the whole thread |
+
+One flat conversation per user (no named/multiple threads). Every reply is
+generated with a system-prompt summary of the user's real applications,
+resumes, contacts, and interview sessions — see
+[architecture.md](architecture.md#ai-career-assistant). Unlike other AI
+features, a missing `ANTHROPIC_API_KEY` doesn't change the response shape —
+it comes back as a normal assistant message explaining that, since the chat
+UI has nowhere else to show a degraded state.

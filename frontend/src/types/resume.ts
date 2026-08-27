@@ -13,6 +13,18 @@ export interface AIFeedback {
 
 export type AIFeedbackStatus = 'ok' | 'not_configured' | 'error'
 
+export interface TailoringSuggestions {
+  summary_rewrite: string
+  bullets_to_emphasize: string[]
+  keywords_to_add: string[]
+  overall_advice: string
+}
+
+export interface TailorResponse {
+  suggestions: TailoringSuggestions | null
+  status: AIFeedbackStatus
+}
+
 export interface Resume {
   id: number
   filename: string
