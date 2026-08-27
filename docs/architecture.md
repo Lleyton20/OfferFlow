@@ -90,6 +90,28 @@ requirements.
   response (no polling/async job needed at this scale). `GET`/`DELETE` follow
   the same per-user ownership + `404` pattern as applications.
 
+## Networking CRM
+
+- **`models/contact.py`** — `Contact` (relationship type, company, role,
+  email, LinkedIn, follow-up/last-contacted dates, notes; owned by
+  `user_id`) and `ContactInteraction` (a timestamped conversation-log entry,
+  one-to-many on `Contact` with `cascade="all, delete-orphan"` — deleting a
+  contact deletes its interaction history).
+- **`services/contact_service.py`** — same CRUD-by-owner pattern as
+  `application_service`, plus `add_interaction`/`get_interaction`/
+  `delete_interaction`. `list_contacts`/`get_contact` eager-load
+  `interactions` via `selectinload` so the full conversation history comes
+  back in one query, no N+1.
+- **`api/contacts.py`** — `/contacts` CRUD plus nested
+  `/contacts/{id}/interactions` for logging/removing a single conversation;
+  both layers enforce ownership with the same `404`-not-`403` pattern.
+- **Follow-up reminders and "networking analytics"** (Core Features) are
+  intentionally *not* separate backend concepts — `follow_up_date` is a
+  plain field on `Contact`, and the analytics (total contacts, overdue
+  count, breakdown by relationship type) are computed client-side from the
+  same `GET /contacts` response already being fetched. No dedicated
+  stats/notifications endpoint or background job exists yet.
+
 ## Frontend
 
 - **`api/client.ts`** — shared `apiFetch` wrapper: always sends
@@ -104,7 +126,10 @@ requirements.
   authenticated user; used to gate the dashboard route in `App.tsx`.
 - **`pages/`** — `LoginPage`, `RegisterPage`, `DashboardPage` (the Kanban
   board + add/edit modal, previously all of `App.tsx`), `ResumesPage` (upload
-  form + `ResumeCard` list with an expandable ATS/AI-feedback breakdown).
+  form + `ResumeCard` list with an expandable ATS/AI-feedback breakdown),
+  `ContactsPage` (analytics summary bar computed client-side from the
+  contacts list + `ContactCard` list with an expandable conversation-history
+  timeline and inline "log a conversation" form).
 - **`types/`** — TypeScript types mirroring backend Pydantic schemas.
 - Data fetching/caching goes through **React Query** — no manual `useEffect`
   fetch/loading-state plumbing.

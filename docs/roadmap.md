@@ -20,10 +20,12 @@ Application Tracking System
 - [x] ATS scoring (rule-based: contact info, quantifiable achievements, length, standard sections, keyword match against a pasted job description)
 - [x] Resume version management (upload history, delete old versions)
 
-## Phase 4 — Networking CRM
-- [ ] Recruiter tracking
-- [ ] Referral management
-- [ ] Follow-up reminders
+## Phase 4 — Networking CRM ✅ done
+- [x] Recruiter tracking (contacts with relationship type, company, role, email, LinkedIn)
+- [x] Referral management (relationship type includes Referral; notes/conversation history per contact)
+- [x] Follow-up reminders (per-contact follow-up date, overdue ones highlighted)
+- [x] Conversation history (timestamped interaction log per contact)
+- [x] Networking analytics (total contacts, overdue follow-ups, breakdown by relationship type)
 
 ## Phase 5 — Interview Preparation Suite
 - [ ] Mock interviews

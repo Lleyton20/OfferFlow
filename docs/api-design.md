@@ -112,3 +112,41 @@ AI feedback (`ai_feedback` + `ai_feedback_status`) calls Claude and degrades
 gracefully: `"not_configured"` when no Anthropic credentials are set on the
 backend (the resume is still scored and saved), `"error"` on a transient API
 failure, `"ok"` with the populated `ai_feedback` object otherwise.
+
+## `Contact`
+
+```jsonc
+{
+  "id": 1,
+  "name": "Alex Recruiter",
+  "company": "Netflix",                 // nullable
+  "role": "Technical Recruiter",        // nullable
+  "email": "alex@netflix.com",          // nullable
+  "linkedin_url": "https://linkedin.com/in/alexrecruiter",  // nullable
+  "relationship_type": "Recruiter",     // suggested: Recruiter, Hiring Manager, Referral, Alum, Other — or custom
+  "notes": "Met at career fair.",       // nullable
+  "last_contacted_date": "2026-08-01",  // nullable, ISO date string
+  "follow_up_date": "2026-09-01",       // nullable, ISO date string
+  "created_at": "2026-08-27T05:30:55.214358+00:00",
+  "updated_at": "2026-08-27T05:30:55.214364+00:00",
+  "interactions": [
+    { "id": 1, "date": "2026-08-15", "note": "Coffee chat about the team.", "created_at": "..." }
+  ]
+}
+```
+
+### Endpoints
+
+| Method | Path                                      | Body                              | Response         | Notes |
+|--------|-------------------------------------------|-------------------------------------|-------------------|-------|
+| GET    | `/contacts`                                | —                                    | `Contact[]`       | Newest first, `interactions` included |
+| POST   | `/contacts`                                | `ContactCreate`                      | `Contact` (201)   | Only `name` is required |
+| GET    | `/contacts/{id}`                           | —                                    | `Contact`         | 404 if missing or owned by another user |
+| PATCH  | `/contacts/{id}`                           | `ContactUpdate`                      | `Contact`         | All fields optional |
+| DELETE | `/contacts/{id}`                           | —                                    | — (204)           | Also deletes its interactions (cascade) |
+| POST   | `/contacts/{id}/interactions`              | `{ "date", "note" }`                 | `Interaction` (201) | |
+| DELETE | `/contacts/{id}/interactions/{interaction_id}` | —                                 | — (204)           | 404 if the contact or interaction isn't the caller's |
+
+"Networking analytics" (total contacts, overdue follow-ups, breakdown by
+relationship type) isn't a separate endpoint — the frontend computes it from
+the `GET /contacts` response it already has.

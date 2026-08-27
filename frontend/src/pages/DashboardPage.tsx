@@ -79,6 +79,9 @@ export function DashboardPage() {
             <Link to="/resumes" className="text-sm text-slate-400 transition hover:text-slate-200">
               Resumes
             </Link>
+            <Link to="/contacts" className="text-sm text-slate-400 transition hover:text-slate-200">
+              Contacts
+            </Link>
             {user && <span className="text-sm text-slate-400">{user.email}</span>}
             <motion.button
               whileHover={{ scale: 1.03 }}

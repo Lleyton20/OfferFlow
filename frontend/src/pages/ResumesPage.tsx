@@ -59,6 +59,9 @@ export function ResumesPage() {
             <Link to="/" className="text-sm text-slate-400 transition hover:text-slate-200">
               ← Dashboard
             </Link>
+            <Link to="/contacts" className="text-sm text-slate-400 transition hover:text-slate-200">
+              Contacts
+            </Link>
             {user && <span className="text-sm text-slate-400">{user.email}</span>}
             <button
               onClick={() => logout()}
