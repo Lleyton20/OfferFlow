@@ -18,13 +18,13 @@ services:
       - key: ENV
         value: production
       - key: CORS_ORIGINS
-        value: "https://CHANGE-ME.vercel.app"
+        sync: false
       - key: ANTHROPIC_API_KEY
         sync: false
       - key: ANTHROPIC_MODEL
         value: claude-opus-5
       - key: FRONTEND_URL
-        value: "https://CHANGE-ME.vercel.app"
+        sync: false
       - key: SMTP_HOST
         sync: false
       - key: SMTP_PORT
