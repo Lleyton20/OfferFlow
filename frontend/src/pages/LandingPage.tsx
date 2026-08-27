@@ -35,6 +35,15 @@ const STEPS = [
   { title: 'Sharpen your resume', body: 'ATS scoring and AI feedback for every version, against every JD.' },
 ]
 
+const STUDENT_AVATARS = [
+  { initials: 'CS', gradient: 'from-emerald-400 to-teal-500', label: 'Computer Science' },
+  { initials: 'BA', gradient: 'from-sky-400 to-emerald-500', label: 'Business' },
+  { initials: 'EE', gradient: 'from-amber-400 to-orange-500', label: 'Engineering' },
+  { initials: 'DS', gradient: 'from-teal-400 to-sky-500', label: 'Data Science' },
+  { initials: 'MK', gradient: 'from-emerald-400 to-sky-500', label: 'Marketing' },
+  { initials: 'FIN', gradient: 'from-amber-400 to-teal-500', label: 'Finance' },
+]
+
 export function LandingPage() {
   return (
     <div className="aurora-bg min-h-screen overflow-hidden bg-slate-950">
@@ -143,6 +152,63 @@ export function LandingPage() {
           </motion.div>
         </section>
 
+        <motion.section
+          initial={{ opacity: 0, y: 16 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.4 }}
+          className="rounded-3xl border border-slate-800 bg-slate-900/40 px-6 py-10 sm:px-10"
+        >
+          <div className="flex flex-col items-center gap-4 text-center">
+            <motion.div
+              className="inline-flex items-center gap-2 rounded-full border border-amber-500/30 bg-amber-500/10 px-4 py-1.5 text-sm font-medium text-amber-200"
+              whileHover={{ scale: 1.04 }}
+            >
+              <motion.span
+                animate={{ rotate: [0, -12, 12, -8, 0] }}
+                transition={{ duration: 2, repeat: Infinity, repeatDelay: 3, ease: 'easeInOut' }}
+                className="inline-block"
+              >
+                🐯
+              </motion.span>
+              Built by a Grambling State Tiger
+            </motion.div>
+            <p className="max-w-xl text-sm text-slate-400 sm:text-base">
+              I built OfferFlow because I was tracking my own internship search across five
+              different tools. If you're a student doing the same juggling act, this is for you —
+              whatever you're majoring in.
+            </p>
+          </div>
+
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-6">
+            {STUDENT_AVATARS.map((avatar, i) => (
+              <motion.div
+                key={avatar.initials}
+                initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
+                viewport={{ once: true, margin: '-40px' }}
+                transition={{ duration: 0.35, delay: i * 0.06 }}
+                className="flex flex-col items-center gap-2"
+              >
+                <motion.div
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{
+                    duration: 3 + (i % 3) * 0.4,
+                    repeat: Infinity,
+                    ease: 'easeInOut',
+                    delay: i * 0.2,
+                  }}
+                  whileHover={{ scale: 1.1 }}
+                  className={`flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br text-sm font-bold text-white shadow-lg ${avatar.gradient}`}
+                >
+                  {avatar.initials}
+                </motion.div>
+                <span className="text-xs text-slate-500">{avatar.label}</span>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
         <section className="py-12 sm:py-16">
           <motion.h2
             initial={{ opacity: 0, y: 10 }}
@@ -166,7 +232,8 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.4, delay: i * 0.08 }}
-                className={`rounded-2xl bg-gradient-to-br p-6 ring-1 ring-inset ${feature.accent}`}
+                whileHover={{ y: -4, scale: 1.02 }}
+                className={`rounded-2xl bg-gradient-to-br p-6 ring-1 ring-inset transition-shadow hover:shadow-xl hover:shadow-black/20 ${feature.accent}`}
               >
                 <h3 className="text-lg font-semibold text-white">{feature.title}</h3>
                 <p className="mt-2 text-sm text-slate-400">{feature.description}</p>
@@ -184,7 +251,8 @@ export function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true, margin: '-60px' }}
                 transition={{ duration: 0.4, delay: i * 0.1 }}
-                className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6"
+                whileHover={{ y: -4, borderColor: 'rgba(52, 211, 153, 0.4)' }}
+                className="rounded-2xl border border-slate-800 bg-slate-900/50 p-6 transition-shadow hover:shadow-xl hover:shadow-black/20"
               >
                 <span className="text-sm font-semibold text-emerald-400">0{i + 1}</span>
                 <h3 className="mt-2 text-base font-semibold text-white">{step.title}</h3>
