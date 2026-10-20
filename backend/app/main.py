@@ -7,9 +7,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from app.api.applications import router as applications_router
 from app.api.assistant import router as assistant_router
 from app.api.auth import router as auth_router
+from app.api.capture import router as capture_router
 from app.api.contacts import router as contacts_router
+from app.api.internal import router as internal_router
 from app.api.interviews import router as interviews_router
+from app.api.jobs import router as jobs_router
 from app.api.resumes import router as resumes_router
+from app.api.tokens import router as tokens_router
 from app.database import Base, engine
 
 
@@ -36,6 +40,10 @@ app.include_router(resumes_router)
 app.include_router(contacts_router)
 app.include_router(interviews_router)
 app.include_router(assistant_router)
+app.include_router(capture_router)
+app.include_router(tokens_router)
+app.include_router(jobs_router)
+app.include_router(internal_router)
 
 
 @app.get("/")

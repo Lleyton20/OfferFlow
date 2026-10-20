@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import COOKIE_NAME, get_current_user
 from app.database import get_db
 from app.models.user import User
+from app.schemas.job import JobPreferences
 from app.schemas.user import (
     ForgotPasswordRequest,
     ResetPasswordRequest,
@@ -80,6 +81,22 @@ def logout(response: Response):
 
 @router.get("/me", response_model=UserRead)
 def me(current_user: User = Depends(get_current_user)):
+    return current_user
+
+
+@router.patch("/me/preferences", response_model=UserRead)
+def update_preferences(
+    data: JobPreferences,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    if data.job_keywords is not None:
+        cleaned = {k.strip()[:60] for k in data.job_keywords if k.strip()}
+        current_user.job_keywords = sorted(cleaned, key=str.lower)
+    if data.digest_enabled is not None:
+        current_user.digest_enabled = data.digest_enabled
+    db.commit()
+    db.refresh(current_user)
     return current_user
 
 

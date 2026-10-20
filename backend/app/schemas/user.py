@@ -63,4 +63,6 @@ class UserRead(BaseModel):
     birthday: date | None
     university: str | None
     grad_year: int | None
+    job_keywords: list[str]
+    digest_enabled: bool
     created_at: datetime
