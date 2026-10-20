@@ -6,3 +6,8 @@ __pycache__/
 *.db
 backend/uploads/
 .claude/settings.local.json
+.coverage
+htmlcov/
+.mypy_cache/
+.ruff_cache/
+.pytest_cache/
