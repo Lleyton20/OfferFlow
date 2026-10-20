@@ -1,7 +1,8 @@
-import { AnimatePresence, motion } from 'motion/react'
 import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
+import { AuthLayout } from '../components/AuthLayout'
+import { FormError } from '../components/FormError'
 import { useAuth } from '../context/AuthContext'
 
 export function LoginPage() {
@@ -27,75 +28,53 @@ export function LoginPage() {
   }
 
   return (
-    <div className="aurora-bg flex min-h-screen items-center justify-center bg-slate-950 px-4">
-      <motion.div
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.4, ease: 'easeOut' }}
-        className="relative z-10 w-full max-w-sm rounded-2xl border border-slate-800 bg-slate-900/70 p-8 shadow-2xl backdrop-blur-xl"
-      >
-        <h1 className="text-2xl font-semibold text-white">Welcome back</h1>
-        <p className="mt-1 text-sm text-slate-400">Sign in to keep tracking your search.</p>
-
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
-          <label className="block">
-            <span className="mb-1 block text-sm text-slate-300">Email</span>
-            <input
-              type="email"
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
-            />
-          </label>
-          <label className="block">
-            <div className="mb-1 flex items-center justify-between">
-              <span className="text-sm text-slate-300">Password</span>
-              <Link to="/forgot-password" className="text-xs text-emerald-400 hover:text-emerald-300">
-                Forgot password?
-              </Link>
-            </div>
-            <input
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
-            />
-          </label>
-
-          <AnimatePresence>
-            {error && (
-              <motion.p
-                initial={{ opacity: 0, x: 0 }}
-                animate={{ opacity: 1, x: [0, -6, 6, -4, 4, 0] }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.4 }}
-                className="text-sm text-red-400"
-              >
-                {error}
-              </motion.p>
-            )}
-          </AnimatePresence>
-
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={isSubmitting}
-            className="w-full rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
-          >
-            {isSubmitting ? 'Signing in…' : 'Sign in'}
-          </motion.button>
-        </form>
-
-        <p className="mt-6 text-center text-sm text-slate-400">
+    <AuthLayout
+      title="Welcome back"
+      description="Sign in to pick up where you left off."
+      footer={
+        <>
           Don&apos;t have an account?{' '}
-          <Link to="/register" className="font-medium text-emerald-400 hover:text-emerald-300">
+          <Link to="/register" className="link">
             Create one
           </Link>
-        </p>
-      </motion.div>
-    </div>
+        </>
+      }
+    >
+      <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <label className="field">
+          <span className="label">Email</span>
+          <input
+            type="email"
+            required
+            autoComplete="email"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input"
+          />
+        </label>
+        <label className="field">
+          <span className="flex items-center justify-between">
+            <span className="label">Password</span>
+            <Link to="/forgot-password" className="link text-xs">
+              Forgot password?
+            </Link>
+          </span>
+          <input
+            type="password"
+            required
+            autoComplete="current-password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input"
+          />
+        </label>
+
+        <FormError message={error} />
+
+        <button type="submit" disabled={isSubmitting} className="btn btn-primary btn-lg w-full">
+          {isSubmitting ? 'Signing in…' : 'Sign in'}
+        </button>
+      </form>
+    </AuthLayout>
   )
 }
