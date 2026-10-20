@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OfferFlow</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand">
+        <svg viewBox="0 0 32 32" aria-hidden="true">
+          <rect width="32" height="32" rx="8" fill="#0f7a45" />
+          <path d="M8 21.5 13.5 16l4 4L24 13.5M19.5 13.5H24V18" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+        OfferFlow
+      </div>
+      <button class="btn link" id="open-settings" type="button">Settings</button>
+    </header>
+
+    <main>
+      <section class="card empty" id="disconnected" hidden>
+        <strong style="color: var(--ink)">Connect your account</strong>
+        <p class="muted">Paste an access token from OfferFlow so captured jobs land on your board.</p>
+        <button class="btn primary" id="connect" type="button">Connect</button>
+      </section>
+
+      <section class="card" id="job" hidden>
+        <div class="eyebrow">On this page</div>
+        <div class="role" id="job-role"></div>
+        <div class="company" id="job-company"></div>
+        <div class="meta" id="job-meta"></div>
+        <div style="margin-top: 12px">
+          <button class="btn primary" id="save" type="button">Save as applied</button>
+        </div>
+        <div class="status" id="save-status" role="status"></div>
+      </section>
+
+      <section class="card empty" id="no-job" hidden>
+        <strong style="color: var(--ink)">No job found on this page</strong>
+        <p class="muted">Open a job posting and OfferFlow will pick it up. Applications are saved automatically when you submit.</p>
+      </section>
+
+      <section class="card" id="prefs" hidden>
+        <div class="row">
+          <div>
+            <div style="color: var(--ink); font-weight: 600">Auto-capture</div>
+            <div class="muted" style="font-size: 12px">Save applications when you hit submit</div>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="auto-capture" aria-label="Auto-capture applications" />
+            <span></span>
+          </label>
+        </div>
+        <div id="recent-wrap" hidden>
+          <div class="eyebrow" style="margin-top: 14px">Recently saved</div>
+          <ul class="recent" id="recent"></ul>
+        </div>
+      </section>
+
+      <button class="btn secondary" id="open-app" type="button" hidden>Open OfferFlow</button>
+    </main>
+
+    <script src="../src/settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

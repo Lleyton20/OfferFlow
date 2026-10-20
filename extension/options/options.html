@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>OfferFlow · Extension settings</title>
+    <link rel="stylesheet" href="../popup/popup.css" />
+    <style>
+      body { width: auto; min-height: 100vh; display: flex; justify-content: center; padding: 48px 16px; }
+      .wrap { width: 100%; max-width: 520px; display: grid; gap: 16px; }
+      h1 { margin: 0; font-size: 22px; letter-spacing: -0.02em; color: var(--ink); }
+      .lead { margin: 4px 0 0; color: var(--muted); font-size: 14px; }
+      label { display: grid; gap: 6px; font-weight: 500; color: var(--ink-soft); }
+      input[type="text"], input[type="url"], input[type="password"] {
+        font: inherit; padding: 9px 11px; border-radius: 9px; border: 1px solid var(--line-strong);
+        background: var(--surface); color: var(--ink); outline: none; transition: border-color .15s, box-shadow .15s;
+      }
+      input:focus { border-color: var(--brand); box-shadow: 0 0 0 4px rgb(15 122 69 / .1); }
+      .hint { font-size: 12px; color: var(--muted); font-weight: 400; }
+      .actions { display: flex; gap: 8px; }
+      .actions .btn { width: auto; }
+      ol { margin: 8px 0 0; padding-left: 18px; color: var(--ink-soft); display: grid; gap: 4px; }
+      a { color: var(--brand-dark); font-weight: 500; }
+      details summary { cursor: pointer; color: var(--muted); font-weight: 500; }
+      details[open] summary { margin-bottom: 12px; }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <div>
+        <h1>Connect OfferFlow</h1>
+        <p class="lead">Once connected, jobs you apply to are saved to your board automatically.</p>
+      </div>
+
+      <section class="card">
+        <div class="eyebrow">Get a token</div>
+        <ol>
+          <li>Open <a href="#" id="settings-link" target="_blank" rel="noopener">OfferFlow settings</a>.</li>
+          <li>Under <strong>Browser extension</strong>, create an access token.</li>
+          <li>Paste it below and save.</li>
+        </ol>
+      </section>
+
+      <form class="card" id="form" style="display: grid; gap: 14px">
+        <label>
+          Access token
+          <input type="password" id="token" autocomplete="off" spellcheck="false" placeholder="of_…" required />
+        </label>
+
+        <details>
+          <summary>Advanced</summary>
+          <div style="display: grid; gap: 14px">
+            <label>
+              API URL
+              <input type="url" id="api-url" required />
+              <span class="hint">Where the OfferFlow API runs. Use http://localhost:8000 for local development.</span>
+            </label>
+            <label>
+              App URL
+              <input type="url" id="app-url" required />
+              <span class="hint">Used for "Open dashboard" links.</span>
+            </label>
+          </div>
+        </details>
+
+        <div class="actions">
+          <button class="btn primary" type="submit">Save and test</button>
+          <button class="btn secondary" type="button" id="disconnect">Disconnect</button>
+        </div>
+        <div class="status" id="status" role="status"></div>
+      </form>
+    </div>
+
+    <script src="../src/settings.js"></script>
+    <script src="options.js"></script>
+  </body>
+</html>

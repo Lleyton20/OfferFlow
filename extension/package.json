@@ -1,0 +1,14 @@
+{
+  "name": "offerflow-extension",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Browser extension that saves applications to OfferFlow when you apply.",
+  "scripts": {
+    "test": "vitest run",
+    "package": "node scripts/package.mjs"
+  },
+  "devDependencies": {
+    "jsdom": "^26.1.0",
+    "vitest": "^4.1.12"
+  }
+}
