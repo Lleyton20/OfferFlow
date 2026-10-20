@@ -1,10 +1,15 @@
 from logging.config import fileConfig
 
 from alembic import context
+from dotenv import load_dotenv
 from sqlalchemy import engine_from_config, pool
 
-from app import models  # noqa: F401 — registers all models on Base.metadata
-from app.database import Base, DATABASE_URL
+# The API loads backend/.env via `uvicorn --env-file`; the alembic CLI needs to
+# do it itself, before app.database reads DATABASE_URL at import time.
+load_dotenv()
+
+from app import models  # noqa: E402, F401 — registers all models on Base.metadata
+from app.database import DATABASE_URL, Base  # noqa: E402
 
 config = context.config
 config.set_main_option("sqlalchemy.url", DATABASE_URL)
