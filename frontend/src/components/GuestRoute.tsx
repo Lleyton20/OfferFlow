@@ -9,7 +9,7 @@ export function GuestRoute({ children }: { children: ReactNode }) {
 
   if (isLoading) {
     return (
-      <div className="flex min-h-screen items-center justify-center bg-slate-950">
+      <div className="flex min-h-screen items-center justify-center bg-canvas">
         <LoadingSpinner />
       </div>
     )

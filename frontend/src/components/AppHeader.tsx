@@ -1,8 +1,8 @@
 import { motion } from 'motion/react'
-import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { isBirthdayToday } from '../lib/birthday'
+import { Logo } from './Logo'
 
 type NavKey =
   | 'dashboard'
@@ -23,69 +23,85 @@ const NAV_ITEMS: { key: NavKey; label: string; to: string }[] = [
   { key: 'analytics', label: 'Analytics', to: '/analytics' },
 ]
 
-interface AppHeaderProps {
-  active: NavKey
-  subtitle?: string
-  actions?: ReactNode
+function initials(name: string | null | undefined, email: string): string {
+  const source = name?.trim() || email
+  const parts = source.split(/\s+/).filter(Boolean)
+  const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : source.slice(0, 2)
+  return letters.toUpperCase()
 }
 
-export function AppHeader({ active, subtitle, actions }: AppHeaderProps) {
+export function AppHeader({ active }: { active: NavKey }) {
   const { user, logout } = useAuth()
   const celebrateBirthday = isBirthdayToday(user?.birthday)
-  const firstName = user?.full_name?.split(' ')[0]
 
   return (
-    <header className="sticky top-0 z-20 border-b border-slate-800 bg-slate-950/80 backdrop-blur">
-      <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-6 py-4">
-        <div className="flex items-center gap-6">
-          <Link to="/dashboard" className="group flex items-baseline gap-2">
-            <span className="bg-gradient-to-r from-emerald-400 via-teal-400 to-sky-400 bg-clip-text text-xl font-bold text-transparent transition group-hover:opacity-80">
-              OfferFlow
-            </span>
-            {subtitle && <span className="hidden text-sm text-slate-500 sm:inline">{subtitle}</span>}
-          </Link>
+    <header className="sticky top-0 z-20 border-b border-line bg-surface/85 backdrop-blur-md">
+      <div className="mx-auto flex h-14 max-w-6xl items-center justify-between gap-6 px-4 sm:px-6">
+        <div className="flex min-w-0 items-center gap-8">
+          <Logo to="/dashboard" />
 
-          <nav className="flex items-center gap-1">
-            {NAV_ITEMS.map((item) => {
-              const isActive = item.key === active
-              return (
-                <Link
-                  key={item.key}
-                  to={item.to}
-                  className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition ${
-                    isActive ? 'text-white' : 'text-slate-400 hover:text-slate-200'
-                  }`}
-                >
-                  {isActive && (
-                    <motion.span
-                      layoutId="nav-pill"
-                      transition={{ type: 'spring', stiffness: 400, damping: 32 }}
-                      className="absolute inset-0 rounded-md bg-emerald-500/15 ring-1 ring-inset ring-emerald-500/40"
-                    />
-                  )}
-                  <span className="relative">{item.label}</span>
-                </Link>
-              )
-            })}
+          <nav aria-label="Primary" className="hidden items-center gap-0.5 md:flex">
+            {NAV_ITEMS.map((item) => (
+              <NavLink key={item.key} item={item} isActive={item.key === active} />
+            ))}
           </nav>
         </div>
 
-        <div className="flex items-center gap-4">
-          {actions}
-          {user && (
-            <div className="hidden items-center gap-2 text-sm text-slate-400 sm:flex">
-              {celebrateBirthday && <span title="Happy birthday!">🎂</span>}
-              <span>{firstName ?? user.email}</span>
+        {user && (
+          <div className="flex items-center gap-3">
+            <div className="hidden items-center gap-2.5 sm:flex">
+              <span
+                className="flex h-7 w-7 items-center justify-center rounded-full bg-brand-50 text-[11px] font-semibold text-brand-700 ring-1 ring-brand-200"
+                aria-hidden="true"
+              >
+                {initials(user.full_name, user.email)}
+              </span>
+              <span className="max-w-40 truncate text-sm font-medium text-ink-soft">
+                {user.full_name ?? user.email}
+                {celebrateBirthday && (
+                  <span className="ml-1.5" title="Happy birthday!" aria-label="Happy birthday">
+                    🎂
+                  </span>
+                )}
+              </span>
             </div>
-          )}
-          <button
-            onClick={() => logout()}
-            className="text-sm text-slate-500 transition hover:text-slate-300"
-          >
-            Log out
-          </button>
-        </div>
+            <span className="hidden h-5 w-px bg-line sm:block" aria-hidden="true" />
+            <button onClick={() => logout()} className="btn btn-ghost btn-sm">
+              Log out
+            </button>
+          </div>
+        )}
       </div>
+
+      <nav
+        aria-label="Primary"
+        className="flex gap-0.5 overflow-x-auto border-t border-line px-3 py-1.5 md:hidden"
+      >
+        {NAV_ITEMS.map((item) => (
+          <NavLink key={item.key} item={item} isActive={item.key === active} />
+        ))}
+      </nav>
     </header>
+  )
+}
+
+function NavLink({ item, isActive }: { item: (typeof NAV_ITEMS)[number]; isActive: boolean }) {
+  return (
+    <Link
+      to={item.to}
+      aria-current={isActive ? 'page' : undefined}
+      className={`relative shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+        isActive ? 'text-ink' : 'text-muted hover:text-ink'
+      }`}
+    >
+      {isActive && (
+        <motion.span
+          layoutId="nav-pill"
+          transition={{ type: 'spring', stiffness: 500, damping: 40 }}
+          className="absolute inset-0 rounded-md bg-subtle ring-1 ring-inset ring-line"
+        />
+      )}
+      <span className="relative">{item.label}</span>
+    </Link>
   )
 }

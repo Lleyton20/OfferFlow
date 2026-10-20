@@ -21,7 +21,7 @@ export function TrendChart({ data, color, valueSuffix = '', ariaLabel }: TrendCh
   const [hovered, setHovered] = useState<number | null>(null)
 
   if (data.length === 0) {
-    return <p className="text-sm text-slate-500">Not enough data yet.</p>
+    return <p className="text-sm text-muted">Not enough data yet.</p>
   }
 
   const innerWidth = WIDTH - PADDING.left - PADDING.right
@@ -48,10 +48,10 @@ export function TrendChart({ data, color, valueSuffix = '', ariaLabel }: TrendCh
           x2={WIDTH - PADDING.right}
           y2={PADDING.top + innerHeight}
           stroke="currentColor"
-          className="text-slate-800"
+          className="text-line"
           strokeWidth={1}
         />
-        <path d={areaPath} fill={color} opacity={0.1} />
+        <path d={areaPath} fill={color} opacity={0.08} />
         <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         {points.map((p, i) => (
           <g key={p.label}>
@@ -60,7 +60,7 @@ export function TrendChart({ data, color, valueSuffix = '', ariaLabel }: TrendCh
               cy={p.y}
               r={hovered === i ? 6 : 4}
               fill={color}
-              stroke="#05060a"
+              stroke="#ffffff"
               strokeWidth={2}
               onPointerEnter={() => setHovered(i)}
               onPointerLeave={() => setHovered(null)}
@@ -75,7 +75,7 @@ export function TrendChart({ data, color, valueSuffix = '', ariaLabel }: TrendCh
               x={p.x}
               y={HEIGHT - 8}
               textAnchor="middle"
-              className="fill-slate-500"
+              className="fill-muted"
               style={{ fontSize: 9 }}
             >
               {p.label}
@@ -87,7 +87,7 @@ export function TrendChart({ data, color, valueSuffix = '', ariaLabel }: TrendCh
             x={points[hovered].x}
             y={points[hovered].y - 12}
             textAnchor="middle"
-            className="fill-white"
+            className="fill-ink"
             style={{ fontSize: 11, fontWeight: 600 }}
           >
             {points[hovered].value}

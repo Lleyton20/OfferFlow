@@ -14,6 +14,13 @@ const BAR_HEIGHT = 22
 const GAP = 10
 const LABEL_WIDTH = 132
 
+// Light bars (the early pipeline greys) need dark value labels; dark bars need white.
+function contrastText(hex: string): string {
+  const n = parseInt(hex.slice(1), 16)
+  const luminance = (0.299 * ((n >> 16) & 255) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255
+  return luminance > 0.6 ? '#0c0f0d' : '#ffffff'
+}
+
 /** Horizontal bar chart: one bar per status, rounded data-end, hover tooltip, direct value label. */
 export function StatusBarChart({ data }: StatusBarChartProps) {
   const [hovered, setHovered] = useState<number | null>(null)
@@ -37,7 +44,7 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                 y={y + BAR_HEIGHT / 2}
                 textAnchor="end"
                 dominantBaseline="middle"
-                className="fill-slate-400"
+                className="fill-muted"
                 style={{ fontSize: 11 }}
               >
                 {d.label}
@@ -48,7 +55,7 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                 width={chartWidth - 40}
                 height={BAR_HEIGHT}
                 rx={4}
-                className="fill-slate-900"
+                className="fill-subtle"
               />
               <rect
                 x={LABEL_WIDTH}
@@ -57,7 +64,7 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                 height={BAR_HEIGHT}
                 rx={4}
                 fill={d.color}
-                opacity={isHovered ? 1 : 0.9}
+                opacity={hovered === null || isHovered ? 1 : 0.55}
                 onPointerEnter={() => setHovered(i)}
                 onPointerLeave={() => setHovered(null)}
                 style={{ cursor: 'pointer', transition: 'opacity 0.15s' }}
@@ -72,7 +79,7 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                   y={y + BAR_HEIGHT / 2}
                   textAnchor="end"
                   dominantBaseline="middle"
-                  className="fill-white"
+                  fill={contrastText(d.color)}
                   style={{ fontSize: 11, fontWeight: 600 }}
                 >
                   {d.value}
@@ -82,7 +89,7 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                   x={LABEL_WIDTH + barWidth + 8}
                   y={y + BAR_HEIGHT / 2}
                   dominantBaseline="middle"
-                  className="fill-slate-300"
+                  className="fill-ink-soft"
                   style={{ fontSize: 11, fontWeight: 600 }}
                 >
                   {d.value}

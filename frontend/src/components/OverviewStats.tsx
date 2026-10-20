@@ -29,54 +29,56 @@ export function OverviewStats({ applications, resumes, contacts }: OverviewStats
       key: 'active',
       label: 'Active applications',
       value: active,
-      accent: 'from-teal-500/20 to-teal-500/5 ring-teal-500/30',
-      to: '/dashboard',
-      hint: `${applications.length} total tracked`,
+      to: '/history',
+      hint: `${applications.length} tracked in total`,
     },
     {
       key: 'offers',
-      label: 'Offers in hand',
+      label: 'Offers',
       value: offers,
-      accent: 'from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30',
-      to: '/dashboard',
-      hint: offers > 0 ? 'Nice work 🎉' : 'Keep going',
+      to: '/history',
+      hint: offers > 0 ? 'Congratulations' : 'None yet — keep going',
+      highlight: offers > 0,
     },
     {
       key: 'contacts',
-      label: 'Follow-ups overdue',
+      label: 'Overdue follow-ups',
       value: overdueFollowUps,
-      accent:
-        overdueFollowUps > 0
-          ? 'from-amber-500/20 to-amber-500/5 ring-amber-500/30'
-          : 'from-slate-700/30 to-slate-700/5 ring-slate-700/40',
       to: '/contacts',
-      hint: `${contacts.length} contact${contacts.length === 1 ? '' : 's'} total`,
+      hint: `${contacts.length} contact${contacts.length === 1 ? '' : 's'}`,
+      warn: overdueFollowUps > 0,
     },
     {
       key: 'resume',
       label: 'Latest resume score',
       value: latestResume ? latestResume.ats_score : 0,
       suffix: latestResume ? '/100' : '',
-      accent: 'from-sky-500/20 to-sky-500/5 ring-sky-500/30',
       to: '/resumes',
       hint: latestResume ? latestResume.filename : 'Upload your first resume',
     },
   ]
 
   return (
-    <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
+    <div className="mb-8 grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-line shadow-card gap-px lg:grid-cols-4">
       {tiles.map((tile, i) => (
-        <motion.div key={tile.key} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.35, delay: i * 0.05 }}>
-          <Link
-            to={tile.to}
-            className={`block rounded-xl bg-gradient-to-br p-4 ring-1 ring-inset transition hover:brightness-110 ${tile.accent}`}
-          >
-            <p className="text-2xl font-semibold text-white">
+        <motion.div
+          key={tile.key}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.3, delay: i * 0.04 }}
+          className="bg-surface"
+        >
+          <Link to={tile.to} className="group block h-full p-5 transition-colors hover:bg-canvas">
+            <p className="text-xs font-medium text-muted">{tile.label}</p>
+            <p
+              className={`mt-2 text-[28px] leading-none font-semibold tracking-tight tabular-nums ${
+                tile.highlight ? 'text-brand-700' : tile.warn ? 'text-warning' : 'text-ink'
+              }`}
+            >
               <AnimatedNumber value={tile.value} />
-              {tile.suffix}
+              {tile.suffix && <span className="ml-0.5 text-base font-medium text-faint">{tile.suffix}</span>}
             </p>
-            <p className="mt-0.5 text-xs font-medium text-slate-300">{tile.label}</p>
-            <p className="mt-1 truncate text-[11px] text-slate-500">{tile.hint}</p>
+            <p className="mt-2 truncate text-xs text-muted">{tile.hint}</p>
           </Link>
         </motion.div>
       ))}

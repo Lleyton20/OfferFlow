@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { useState } from 'react'
 import {
   createApplication,
@@ -13,11 +13,20 @@ import { AppHeader } from '../components/AppHeader'
 import { ApplicationBoard } from '../components/ApplicationBoard'
 import { ApplicationFormModal } from '../components/ApplicationFormModal'
 import { BirthdayBanner } from '../components/BirthdayBanner'
+import { EmptyState } from '../components/EmptyState'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { OverviewStats } from '../components/OverviewStats'
+import { PageHeader } from '../components/PageHeader'
 import { useAuth } from '../context/AuthContext'
 import { isBirthdayToday } from '../lib/birthday'
 import type { Application, ApplicationInput } from '../types/application'
+
+function greeting(): string {
+  const hour = new Date().getHours()
+  if (hour < 12) return 'Good morning'
+  if (hour < 18) return 'Good afternoon'
+  return 'Good evening'
+}
 
 export function DashboardPage() {
   const { user } = useAuth()
@@ -79,25 +88,25 @@ export function DashboardPage() {
     }
   }
 
-  return (
-    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
-      <AppHeader
-        active="dashboard"
-        subtitle="From Application to Offer."
-        actions={
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setModalState({ mode: 'create' })}
-            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
-          >
-            + Add Application
-          </motion.button>
-        }
-      />
+  const firstName = user?.full_name?.split(' ')[0]
+  const openCreate = () => setModalState({ mode: 'create' })
 
-      <main className="mx-auto max-w-6xl px-6 py-6">
-        {isBirthdayToday(user?.birthday) && <BirthdayBanner name={user?.full_name?.split(' ')[0]} />}
+  return (
+    <div className="min-h-screen bg-canvas">
+      <AppHeader active="dashboard" />
+
+      <main className="page">
+        {isBirthdayToday(user?.birthday) && <BirthdayBanner name={firstName} />}
+
+        <PageHeader
+          title={firstName ? `${greeting()}, ${firstName}` : 'Dashboard'}
+          description="Your pipeline at a glance, from first application to signed offer."
+          actions={
+            <button onClick={openCreate} className="btn btn-primary">
+              <span aria-hidden="true">+</span> Add application
+            </button>
+          }
+        />
 
         {applications && (
           <OverviewStats
@@ -109,9 +118,22 @@ export function DashboardPage() {
 
         {isLoading && <LoadingSpinner label="Loading applications…" />}
         {isError && (
-          <p className="text-red-400">Couldn&apos;t reach the API: {(error as Error).message}</p>
+          <div className="rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
+            Couldn&apos;t reach the API: {(error as Error).message}
+          </div>
         )}
-        {applications && (
+        {applications && applications.length === 0 && (
+          <EmptyState
+            title="No applications yet"
+            description="Add the first role you've applied to and it will show up on your board."
+            action={
+              <button onClick={openCreate} className="btn btn-primary">
+                Add your first application
+              </button>
+            }
+          />
+        )}
+        {applications && applications.length > 0 && (
           <ApplicationBoard
             applications={applications}
             onEdit={(application) => setModalState({ mode: 'edit', application })}
