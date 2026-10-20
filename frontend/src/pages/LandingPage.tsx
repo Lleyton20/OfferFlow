@@ -1,16 +1,17 @@
-import { motion } from 'motion/react'
-import type { ReactNode } from 'react'
+import { motion, useScroll, useTransform } from 'motion/react'
+import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
+import { AnimatedNumber } from '../components/AnimatedNumber'
 import { Logo } from '../components/Logo'
-import { StudentFigure } from '../components/StudentFigure'
 import { STATUS_COLORS } from '../lib/statusColors'
 import { APPLICATION_STATUSES } from '../types/application'
 
 const REPO_URL = 'https://github.com/Lleyton20/OfferFlow'
+const EASE = [0.2, 0.8, 0.2, 1] as const
 
 function Icon({ children }: { children: ReactNode }) {
   return (
-    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100">
+    <span className="flex h-9 w-9 items-center justify-center rounded-lg bg-brand-50 text-brand-700 ring-1 ring-brand-100 transition-transform duration-300 group-hover:-translate-y-0.5 group-hover:scale-105">
       <svg viewBox="0 0 20 20" className="h-[18px] w-[18px]" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         {children}
       </svg>
@@ -96,41 +97,56 @@ const STEPS = [
   { title: 'Sharpen each resume', body: 'ATS scoring and tailored feedback against every posting.' },
 ]
 
-const STUDENT_FIGURES: {
-  pose: 'laptop' | 'walking' | 'celebrating' | 'reading'
-  skinTone: string
-  outfit: string
-  label: string
-}[] = [
-  { pose: 'laptop', skinTone: '#c68863', outfit: '#0f7a45', label: 'Computer Science' },
-  { pose: 'walking', skinTone: '#8d5524', outfit: '#3c413e', label: 'Business' },
-  { pose: 'celebrating', skinTone: '#f1c27d', outfit: '#3fa36a', label: 'Engineering' },
-  { pose: 'reading', skinTone: '#e0ac69', outfit: '#0a4f2e', label: 'Data Science' },
-  { pose: 'laptop', skinTone: '#5c3a21', outfit: '#848a86', label: 'Marketing' },
-  { pose: 'walking', skinTone: '#f1c27d', outfit: '#1a8a50', label: 'Finance' },
-]
+const PREVIEW_STAGES = ['Applied', 'Recruiter Screen', 'Final Round', 'Offer'] as const
+type PreviewStage = (typeof PREVIEW_STAGES)[number]
 
-const PREVIEW_COLUMNS = [
-  {
-    status: 'Applied',
-    cards: [
-      { company: 'Stripe', role: 'Software Engineer Intern' },
-      { company: 'Figma', role: 'Product Design Intern' },
-    ],
-  },
-  { status: 'Recruiter Screen', cards: [{ company: 'Datadog', role: 'SWE Intern', referral: true }] },
-  { status: 'Final Round', cards: [{ company: 'Ramp', role: 'Software Engineer, New Grad' }] },
-  { status: 'Offer', cards: [{ company: 'Notion', role: 'Software Engineer Intern' }] },
+const STATIC_CARDS: { company: string; role: string; stage: PreviewStage }[] = [
+  { company: 'Stripe', role: 'Software Engineer Intern', stage: 'Applied' },
+  { company: 'Figma', role: 'Product Design Intern', stage: 'Applied' },
+  { company: 'Ramp', role: 'Software Engineer, New Grad', stage: 'Recruiter Screen' },
+  { company: 'Notion', role: 'Software Engineer Intern', stage: 'Final Round' },
 ]
 
 const fadeUp = {
-  initial: { opacity: 0, y: 12 },
+  initial: { opacity: 0, y: 16 },
   whileInView: { opacity: 1, y: 0 },
-  viewport: { once: true, margin: '-60px' },
-  transition: { duration: 0.45, ease: [0.2, 0.8, 0.2, 1] as const },
+  viewport: { once: true, margin: '-80px' },
+  transition: { duration: 0.6, ease: EASE },
 }
 
+/** Splits a line into words that rise into place one after another. */
+function RevealWords({ text, delay = 0, className }: { text: string; delay?: number; className?: string }) {
+  return (
+    <span className={className}>
+      {text.split(' ').map((word, i) => (
+        <span key={`${word}-${i}`} className="inline-block overflow-hidden pb-[0.08em] align-bottom">
+          <motion.span
+            className="inline-block"
+            initial={{ y: '110%' }}
+            animate={{ y: 0 }}
+            transition={{ duration: 0.7, delay: delay + i * 0.06, ease: EASE }}
+          >
+            {word}
+            {' '}
+          </motion.span>
+        </span>
+      ))}
+    </span>
+  )
+}
+
+/** A self-playing board: one application advances a stage every couple of seconds. */
 function ProductPreview() {
+  const [stageIndex, setStageIndex] = useState(0)
+  const stage = PREVIEW_STAGES[stageIndex]
+
+  useEffect(() => {
+    const id = setInterval(() => setStageIndex((i) => (i + 1) % PREVIEW_STAGES.length), 2200)
+    return () => clearInterval(id)
+  }, [])
+
+  const isOffer = stage === 'Offer'
+
   return (
     <div className="overflow-hidden rounded-2xl border border-line bg-surface shadow-overlay">
       <div className="flex items-center gap-1.5 border-b border-line bg-canvas px-4 py-3">
@@ -139,35 +155,58 @@ function ProductPreview() {
         <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
         <span className="ml-3 text-xs text-muted">offerflow / dashboard</span>
       </div>
-      <div className="grid grid-cols-2 divide-line border-b border-line text-left sm:grid-cols-4 sm:divide-x">
+      <div className="grid grid-cols-2 border-b border-line text-left sm:grid-cols-4 sm:divide-x sm:divide-line">
         {[
-          ['Active applications', '12'],
-          ['Offers', '1'],
-          ['Overdue follow-ups', '2'],
-          ['Latest resume score', '86'],
-        ].map(([label, value]) => (
-          <div key={label} className="px-5 py-4">
-            <p className="text-[11px] font-medium text-muted">{label}</p>
-            <p className="mt-1 text-xl font-semibold tracking-tight tabular-nums text-ink">{value}</p>
+          { label: 'Active applications', value: isOffer ? 11 : 12 },
+          { label: 'Offers', value: isOffer ? 2 : 1, highlight: isOffer },
+          { label: 'Overdue follow-ups', value: 2 },
+          { label: 'Latest resume score', value: 86 },
+        ].map((tile) => (
+          <div key={tile.label} className="px-5 py-4">
+            <p className="text-[11px] font-medium text-muted">{tile.label}</p>
+            <p
+              className={`mt-1 text-xl font-semibold tracking-tight tabular-nums transition-colors duration-500 ${
+                tile.highlight ? 'text-brand-600' : 'text-ink'
+              }`}
+            >
+              <AnimatedNumber value={tile.value} />
+            </p>
           </div>
         ))}
       </div>
       <div className="grid gap-3 bg-canvas p-4 text-left sm:grid-cols-4">
-        {PREVIEW_COLUMNS.map((column, i) => (
-          <div key={column.status} className={`rounded-lg bg-subtle/80 p-2 ${i > 1 ? 'hidden sm:block' : ''}`}>
+        {PREVIEW_STAGES.map((column, i) => (
+          <div key={column} className={`rounded-lg bg-subtle/80 p-2 ${i > 1 ? 'hidden sm:block' : ''}`}>
             <div className="flex items-center gap-1.5 px-1.5 pt-0.5 pb-2">
-              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[column.status] }} />
-              <span className="text-[11px] font-semibold text-ink">{column.status}</span>
+              <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[column] }} />
+              <span className="text-[11px] font-semibold text-ink">{column}</span>
             </div>
-            <div className="space-y-2">
-              {column.cards.map((card) => (
-                <div key={card.company} className="rounded-md border border-line bg-surface p-2.5 shadow-xs">
+            <div className="min-h-[7.5rem] space-y-2">
+              {stage === column && (
+                <motion.div
+                  layoutId="preview-moving-card"
+                  transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+                  className={`rounded-md border bg-surface p-2.5 shadow-lift ${
+                    isOffer ? 'border-brand-300 ring-2 ring-brand-100' : 'border-line'
+                  }`}
+                >
                   <div className="flex items-start justify-between gap-1">
-                    <p className="text-xs font-semibold text-ink">{card.company}</p>
-                    {'referral' in card && <span className="chip chip-brand px-1.5 text-[10px]">Referral</span>}
+                    <p className="text-xs font-semibold text-ink">Datadog</p>
+                    <span className="chip chip-brand px-1.5 text-[10px]">Referral</span>
                   </div>
+                  <p className="mt-0.5 truncate text-[11px] text-muted">SWE Intern</p>
+                </motion.div>
+              )}
+              {STATIC_CARDS.filter((card) => card.stage === column).map((card) => (
+                <motion.div
+                  key={card.company}
+                  layout
+                  transition={{ type: 'spring', stiffness: 260, damping: 28 }}
+                  className="rounded-md border border-line bg-surface p-2.5 shadow-xs"
+                >
+                  <p className="text-xs font-semibold text-ink">{card.company}</p>
                   <p className="mt-0.5 truncate text-[11px] text-muted">{card.role}</p>
-                </div>
+                </motion.div>
               ))}
             </div>
           </div>
@@ -177,10 +216,69 @@ function ProductPreview() {
   )
 }
 
+/** The pipeline legend, with a marker that travels from Applied toward Offer. */
+function PipelineStrip() {
+  const [active, setActive] = useState(0)
+  const stages = APPLICATION_STATUSES.filter((s) => s !== 'Rejected')
+
+  useEffect(() => {
+    const id = setInterval(() => setActive((i) => (i + 1) % stages.length), 1100)
+    return () => clearInterval(id)
+  }, [stages.length])
+
+  return (
+    <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-2 gap-y-2 px-4 py-6 sm:px-6">
+      {stages.map((status, i) => (
+        <div key={status} className="flex items-center gap-2">
+          <span className="relative flex items-center gap-1.5 rounded-full px-2.5 py-1 text-xs font-medium text-ink-soft">
+            {active === i && (
+              <motion.span
+                layoutId="pipeline-marker"
+                transition={{ type: 'spring', stiffness: 380, damping: 32 }}
+                className="absolute inset-0 rounded-full bg-brand-50 ring-1 ring-brand-200"
+              />
+            )}
+            <span
+              className="relative h-1.5 w-1.5 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS[status] }}
+            />
+            <span className={`relative transition-colors duration-300 ${active === i ? 'text-brand-800' : ''}`}>
+              {status}
+            </span>
+          </span>
+          {i < stages.length - 1 && (
+            <span className="text-line-strong" aria-hidden="true">
+              →
+            </span>
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
 export function LandingPage() {
+  const heroRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
+  const previewRotate = useTransform(scrollYProgress, [0, 0.5], [10, 0])
+  const previewScale = useTransform(scrollYProgress, [0, 0.5], [0.94, 1])
+  const gridY = useTransform(scrollYProgress, [0, 1], [0, 120])
+
+  const [scrolled, setScrolled] = useState(false)
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8)
+    onScroll()
+    window.addEventListener('scroll', onScroll, { passive: true })
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
   return (
     <div className="min-h-screen bg-canvas">
-      <header className="sticky top-0 z-20 border-b border-transparent bg-canvas/80 backdrop-blur-md">
+      <header
+        className={`sticky top-0 z-20 border-b bg-canvas/80 backdrop-blur-md transition-colors duration-300 ${
+          scrolled ? 'border-line' : 'border-transparent'
+        }`}
+      >
         <div className="mx-auto flex h-16 max-w-6xl items-center justify-between px-4 sm:px-6">
           <Logo />
           <nav className="flex items-center gap-2">
@@ -195,34 +293,38 @@ export function LandingPage() {
       </header>
 
       <main>
-        <section className="relative overflow-hidden">
-          <div className="dot-grid pointer-events-none absolute inset-0" aria-hidden="true" />
+        <section ref={heroRef} className="relative overflow-hidden">
+          <motion.div style={{ y: gridY }} className="dot-grid pointer-events-none absolute inset-0" aria-hidden="true" />
+          <motion.div
+            aria-hidden="true"
+            className="pointer-events-none absolute top-24 left-1/2 h-72 w-[42rem] -translate-x-1/2 rounded-full bg-brand-100/60 blur-3xl"
+            animate={{ opacity: [0.5, 0.8, 0.5], scale: [1, 1.06, 1] }}
+            transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut' }}
+          />
           <div className="relative mx-auto flex max-w-6xl flex-col items-center px-4 pt-16 pb-20 text-center sm:px-6 sm:pt-24">
             <motion.span
-              initial={{ opacity: 0, y: 6 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4 }}
+              initial={{ opacity: 0, y: 8, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ duration: 0.5, ease: EASE }}
               className="chip chip-neutral bg-surface px-3 py-1 shadow-xs"
             >
-              <span className="h-1.5 w-1.5 rounded-full bg-brand-600" aria-hidden="true" />
+              <span className="relative flex h-1.5 w-1.5" aria-hidden="true">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-brand-500 opacity-60" />
+                <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-brand-600" />
+              </span>
               Built for internship and new-grad recruiting
             </motion.span>
 
-            <motion.h1
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.05 }}
-              className="mt-6 max-w-3xl text-[40px] leading-[1.05] font-semibold tracking-[-0.035em] text-ink sm:text-6xl"
-            >
-              Your entire job search,
+            <h1 className="mt-6 max-w-3xl text-[40px] leading-[1.05] font-semibold tracking-[-0.035em] text-ink sm:text-6xl">
+              <RevealWords text="Your entire job search," delay={0.1} />
               <br />
-              <span className="text-brand-600">in one place.</span>
-            </motion.h1>
+              <RevealWords text="in one place." delay={0.35} className="text-brand-600" />
+            </h1>
 
             <motion.p
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.1 }}
+              transition={{ duration: 0.6, delay: 0.55, ease: EASE }}
               className="mt-6 max-w-xl text-base leading-relaxed text-muted sm:text-lg"
             >
               OfferFlow replaces the spreadsheet and seven open tabs with one connected workspace.
@@ -230,13 +332,16 @@ export function LandingPage() {
             </motion.p>
 
             <motion.div
-              initial={{ opacity: 0, y: 10 }}
+              initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.15 }}
+              transition={{ duration: 0.6, delay: 0.65, ease: EASE }}
               className="mt-9 flex flex-wrap items-center justify-center gap-3"
             >
-              <Link to="/register" className="btn btn-primary btn-lg">
+              <Link to="/register" className="btn btn-primary btn-lg group">
                 Create a free account
+                <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+                  →
+                </span>
               </Link>
               <Link to="/login" className="btn btn-secondary btn-lg">
                 Sign in
@@ -244,32 +349,20 @@ export function LandingPage() {
             </motion.div>
 
             <motion.div
-              initial={{ opacity: 0, y: 24 }}
+              initial={{ opacity: 0, y: 40 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.7, delay: 0.25, ease: [0.2, 0.8, 0.2, 1] }}
-              className="mt-16 w-full max-w-5xl"
+              transition={{ duration: 0.9, delay: 0.75, ease: EASE }}
+              className="mt-16 w-full max-w-5xl [perspective:1400px]"
             >
-              <ProductPreview />
+              <motion.div style={{ rotateX: previewRotate, scale: previewScale, transformOrigin: 'center top' }}>
+                <ProductPreview />
+              </motion.div>
             </motion.div>
           </div>
         </section>
 
         <section className="border-y border-line bg-surface">
-          <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-center gap-x-3 gap-y-2 px-4 py-6 sm:px-6">
-            {APPLICATION_STATUSES.map((status, i) => (
-              <div key={status} className="flex items-center gap-3">
-                <span className="flex items-center gap-1.5 text-xs font-medium text-ink-soft">
-                  <span className="h-1.5 w-1.5 rounded-full" style={{ backgroundColor: STATUS_COLORS[status] }} />
-                  {status}
-                </span>
-                {i < APPLICATION_STATUSES.length - 1 && (
-                  <span className="text-line-strong" aria-hidden="true">
-                    →
-                  </span>
-                )}
-              </div>
-            ))}
-          </div>
+          <PipelineStrip />
         </section>
 
         <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
@@ -288,10 +381,16 @@ export function LandingPage() {
             {FEATURES.map((feature, i) => (
               <motion.div
                 key={feature.title}
-                {...fadeUp}
-                transition={{ ...fadeUp.transition, delay: (i % 3) * 0.06 }}
-                className="bg-surface p-7"
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-60px' }}
+                transition={{ duration: 0.55, delay: (i % 3) * 0.08 + Math.floor(i / 3) * 0.12, ease: EASE }}
+                className="group relative bg-surface p-7 transition-colors duration-300 hover:bg-canvas"
               >
+                <span
+                  className="absolute inset-x-0 top-0 h-0.5 origin-left scale-x-0 bg-brand-600 transition-transform duration-500 group-hover:scale-x-100"
+                  aria-hidden="true"
+                />
                 <Icon>{feature.icon}</Icon>
                 <h3 className="mt-5 text-[15px] font-semibold text-ink">{feature.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{feature.description}</p>
@@ -303,9 +402,15 @@ export function LandingPage() {
         <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
           <div className="grid gap-10 sm:grid-cols-3">
             {STEPS.map((step, i) => (
-              <motion.div key={step.title} {...fadeUp} transition={{ ...fadeUp.transition, delay: i * 0.08 }}>
+              <motion.div key={step.title} {...fadeUp} transition={{ ...fadeUp.transition, delay: i * 0.12 }}>
                 <span className="font-mono text-xs font-medium text-brand-700">0{i + 1}</span>
-                <div className="mt-3 h-px bg-line" />
+                <motion.div
+                  className="mt-3 h-px origin-left bg-line-strong"
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true, margin: '-60px' }}
+                  transition={{ duration: 0.9, delay: 0.2 + i * 0.12, ease: EASE }}
+                />
                 <h3 className="mt-5 text-base font-semibold text-ink">{step.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-muted">{step.body}</p>
               </motion.div>
@@ -314,56 +419,23 @@ export function LandingPage() {
         </section>
 
         <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
-          <motion.div {...fadeUp} className="card px-6 py-12 text-center sm:px-12">
-            <span className="chip chip-neutral px-3 py-1">
-              <span aria-hidden="true">🐯</span> Built by a Grambling State Tiger
-            </span>
-            <p className="mx-auto mt-5 max-w-xl text-base leading-relaxed text-ink-soft">
-              I built OfferFlow because I was tracking my own internship search across five different
-              tools. If you&apos;re a student doing the same juggling act, this is for you, whatever
-              you&apos;re studying.
-            </p>
-
-            <div className="mt-10 flex flex-wrap items-end justify-center gap-5 sm:gap-8">
-              {STUDENT_FIGURES.map((figure, i) => (
-                <motion.div
-                  key={`${figure.pose}-${i}`}
-                  initial={{ opacity: 0, y: 10 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true, margin: '-40px' }}
-                  transition={{ duration: 0.35, delay: i * 0.05 }}
-                  className="flex flex-col items-center gap-2"
-                >
-                  <motion.div
-                    whileHover={{ y: -4 }}
-                    className="rounded-2xl bg-canvas p-2 ring-1 ring-inset ring-line"
-                  >
-                    <StudentFigure
-                      pose={figure.pose}
-                      skinTone={figure.skinTone}
-                      outfit={figure.outfit}
-                      className="h-14 w-14"
-                    />
-                  </motion.div>
-                  <span className="text-xs text-muted">{figure.label}</span>
-                </motion.div>
-              ))}
-            </div>
-          </motion.div>
-        </section>
-
-        <section className="mx-auto max-w-6xl px-4 pb-24 sm:px-6">
           <motion.div
-            {...fadeUp}
+            initial={{ opacity: 0, y: 24, scale: 0.98 }}
+            whileInView={{ opacity: 1, y: 0, scale: 1 }}
+            viewport={{ once: true, margin: '-80px' }}
+            transition={{ duration: 0.7, ease: EASE }}
             className="relative overflow-hidden rounded-2xl bg-brand-900 px-6 py-16 text-center sm:px-12"
           >
             <div
               className="pointer-events-none absolute inset-0 opacity-[0.07]"
-              style={{
-                backgroundImage: 'radial-gradient(white 1px, transparent 1px)',
-                backgroundSize: '22px 22px',
-              }}
+              style={{ backgroundImage: 'radial-gradient(white 1px, transparent 1px)', backgroundSize: '22px 22px' }}
               aria-hidden="true"
+            />
+            <motion.div
+              aria-hidden="true"
+              className="pointer-events-none absolute inset-y-0 -left-1/3 w-1/3 bg-gradient-to-r from-transparent via-white/10 to-transparent"
+              animate={{ x: ['0%', '400%'] }}
+              transition={{ duration: 3.5, repeat: Infinity, repeatDelay: 2.5, ease: 'easeInOut' }}
             />
             <h2 className="relative text-3xl font-semibold tracking-tight text-white sm:text-4xl">
               Your search deserves a system.
@@ -373,9 +445,12 @@ export function LandingPage() {
             </p>
             <Link
               to="/register"
-              className="btn btn-lg relative mt-8 bg-white text-brand-900 shadow-xs hover:bg-brand-50"
+              className="btn btn-lg group relative mt-8 bg-white text-brand-900 shadow-xs hover:bg-brand-50"
             >
               Start tracking for free
+              <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+                →
+              </span>
             </Link>
           </motion.div>
         </section>
@@ -385,10 +460,10 @@ export function LandingPage() {
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-4 px-4 py-8 sm:flex-row sm:px-6">
           <div className="flex items-center gap-3">
             <Logo />
-            <span className="text-xs text-muted">Built by Lleyton Magama, Grambling State University</span>
+            <span className="text-xs text-muted">© {new Date().getFullYear()} OfferFlow</span>
           </div>
           <a href={REPO_URL} target="_blank" rel="noreferrer" className="link-muted text-sm">
-            View on GitHub ↗
+            GitHub ↗
           </a>
         </div>
       </footer>
