@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { AuthLayout } from '../components/AuthLayout'
 import { FormError } from '../components/FormError'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 export function LoginPage() {
   const { login } = useAuth()

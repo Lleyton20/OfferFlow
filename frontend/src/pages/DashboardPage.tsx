@@ -17,7 +17,7 @@ import { EmptyState } from '../components/EmptyState'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { OverviewStats } from '../components/OverviewStats'
 import { PageHeader } from '../components/PageHeader'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { isBirthdayToday } from '../lib/birthday'
 import type { Application, ApplicationInput } from '../types/application'
 

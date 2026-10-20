@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { AuthLayout } from '../components/AuthLayout'
 import { FormError } from '../components/FormError'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 
 const CURRENT_YEAR = new Date().getFullYear()
 const GRAD_YEARS = Array.from({ length: 9 }, (_, i) => CURRENT_YEAR - 1 + i)

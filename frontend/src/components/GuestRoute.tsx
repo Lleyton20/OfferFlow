@@ -1,6 +1,6 @@
 import type { ReactNode } from 'react'
 import { Navigate } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { LoadingSpinner } from './LoadingSpinner'
 
 /** Renders children only for signed-out visitors; sends signed-in users to the dashboard. */
