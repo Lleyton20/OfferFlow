@@ -19,8 +19,8 @@ export function StudentFigure({ pose, skinTone, outfit, className }: StudentFigu
         return (
           <>
             <rect x="34" y="46" width="32" height="34" rx="10" fill={outfit} />
-            <rect x="24" y="70" width="52" height="8" rx="4" fill="#1e293b" />
-            <rect x="30" y="62" width="40" height="16" rx="3" fill="#0f172a" />
+            <rect x="24" y="70" width="52" height="8" rx="4" fill="#3c413e" />
+            <rect x="30" y="62" width="40" height="16" rx="3" fill="#2a2f2c" />
             <circle cx="50" cy="26" r="16" fill={skinTone} />
           </>
         )
@@ -32,7 +32,7 @@ export function StudentFigure({ pose, skinTone, outfit, className }: StudentFigu
             <rect x="64" y="72" width="10" height="20" rx="4" fill={outfit} transform="rotate(14 69 72)" />
             <rect x="20" y="48" width="9" height="22" rx="4" fill={skinTone} transform="rotate(24 24 48)" />
             <rect x="70" y="48" width="9" height="22" rx="4" fill={skinTone} transform="rotate(-20 75 48)" />
-            <rect x="30" y="50" width="18" height="14" rx="4" fill="#334155" />
+            <rect x="30" y="50" width="18" height="14" rx="4" fill="#5f6562" />
             <circle cx="50" cy="26" r="16" fill={skinTone} />
           </>
         )
@@ -52,8 +52,8 @@ export function StudentFigure({ pose, skinTone, outfit, className }: StudentFigu
         return (
           <>
             <path d="M30 78 Q50 92 70 78 L70 50 Q50 40 30 50 Z" fill={outfit} />
-            <rect x="38" y="54" width="24" height="18" rx="2" fill="#f1f5f9" />
-            <rect x="49" y="54" width="2" height="18" fill="#cbd5e1" />
+            <rect x="38" y="54" width="24" height="18" rx="2" fill="#ffffff" />
+            <rect x="49" y="54" width="2" height="18" fill="#d5d8d3" />
             <circle cx="50" cy="26" r="16" fill={skinTone} />
           </>
         )
