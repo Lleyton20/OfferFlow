@@ -1,7 +1,8 @@
 import { motion } from 'motion/react'
 import { Link } from 'react-router-dom'
-import { useAuth } from '../context/AuthContext'
+import { useAuth } from '../context/useAuth'
 import { isBirthdayToday } from '../lib/birthday'
+import { initials } from '../lib/initials'
 import { Logo } from './Logo'
 
 type NavKey =
@@ -22,13 +23,6 @@ const NAV_ITEMS: { key: NavKey; label: string; to: string }[] = [
   { key: 'assistant', label: 'Assistant', to: '/assistant' },
   { key: 'analytics', label: 'Analytics', to: '/analytics' },
 ]
-
-function initials(name: string | null | undefined, email: string): string {
-  const source = name?.trim() || email
-  const parts = source.split(/\s+/).filter(Boolean)
-  const letters = parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : source.slice(0, 2)
-  return letters.toUpperCase()
-}
 
 export function AppHeader({ active }: { active: NavKey }) {
   const { user, logout } = useAuth()
