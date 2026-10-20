@@ -30,10 +30,7 @@ def generate_mock_questions(
         context_lines.append(f"Company: {company}")
     if job_description:
         context_lines.append(f"Job description:\n{job_description}")
-    user_content = (
-        "\n".join(context_lines)
-        + "\n\nGenerate 5 mock interview questions for this."
-    )
+    user_content = "\n".join(context_lines) + "\n\nGenerate 5 mock interview questions for this."
 
     try:
         response = client.messages.parse(

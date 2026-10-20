@@ -23,9 +23,7 @@ def _validate_resume_id(db: Session, user_id: int, resume_id: int | None) -> Non
 
 
 @router.get("", response_model=list[ApplicationRead])
-def get_applications(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def get_applications(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return application_service.list_applications(db, current_user.id)
 
 

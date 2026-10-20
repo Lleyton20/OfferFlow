@@ -17,9 +17,7 @@ class Application(Base):
     user_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("users.id"), nullable=False, index=True
     )
-    resume_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("resumes.id"), nullable=True
-    )
+    resume_id: Mapped[int | None] = mapped_column(Integer, ForeignKey("resumes.id"), nullable=True)
     company: Mapped[str] = mapped_column(String, nullable=False)
     role: Mapped[str] = mapped_column(String, nullable=False)
     date_applied: Mapped[str] = mapped_column(String, nullable=False)

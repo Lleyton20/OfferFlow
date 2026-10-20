@@ -71,10 +71,26 @@ def test_session_can_link_an_application(auth_client):
 
 
 def test_session_rejects_another_users_application(client):
-    client.post("/auth/register", json={"email": "ivA@example.com", "password": "password123", "full_name": "A", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "ivA@example.com",
+            "password": "password123",
+            "full_name": "A",
+            "birthday": "2000-01-01",
+        },
+    )
     application = client.post("/applications", json=_sample_application()).json()
 
-    client.post("/auth/register", json={"email": "ivB@example.com", "password": "password123", "full_name": "B", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "ivB@example.com",
+            "password": "password123",
+            "full_name": "B",
+            "birthday": "2000-01-01",
+        },
+    )
     response = client.post("/interviews", json=_sample_session(application_id=application["id"]))
     assert response.status_code == 400
 
@@ -91,10 +107,26 @@ def test_generate_questions_degrades_without_api_key(auth_client):
 
 
 def test_session_isolated_between_users(client):
-    client.post("/auth/register", json={"email": "ivC@example.com", "password": "password123", "full_name": "C", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "ivC@example.com",
+            "password": "password123",
+            "full_name": "C",
+            "birthday": "2000-01-01",
+        },
+    )
     created = client.post("/interviews", json=_sample_session()).json()
 
-    client.post("/auth/register", json={"email": "ivD@example.com", "password": "password123", "full_name": "D", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "ivD@example.com",
+            "password": "password123",
+            "full_name": "D",
+            "birthday": "2000-01-01",
+        },
+    )
 
     assert client.get(f"/interviews/{created['id']}").status_code == 404
     assert client.get("/interviews").json() == []

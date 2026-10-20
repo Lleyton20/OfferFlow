@@ -17,7 +17,9 @@ Python, React, SQL, Git
 SAMPLE_JOB_DESCRIPTION = "Looking for an intern experienced with Python, React, and SQL."
 
 
-def _upload(client, text=SAMPLE_RESUME, job_description=SAMPLE_JOB_DESCRIPTION, filename="resume.txt"):
+def _upload(
+    client, text=SAMPLE_RESUME, job_description=SAMPLE_JOB_DESCRIPTION, filename="resume.txt"
+):
     return client.post(
         "/resumes",
         files={"file": (filename, text.encode("utf-8"), "text/plain")},
@@ -101,10 +103,26 @@ def test_tailor_resume_not_found(auth_client):
 
 
 def test_resume_isolated_between_users(client):
-    client.post("/auth/register", json={"email": "resA@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "resA@example.com",
+            "password": "password123",
+            "full_name": "Test User",
+            "birthday": "2000-01-01",
+        },
+    )
     created = _upload(client).json()
 
-    client.post("/auth/register", json={"email": "resB@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "resB@example.com",
+            "password": "password123",
+            "full_name": "Test User",
+            "birthday": "2000-01-01",
+        },
+    )
 
     assert client.get(f"/resumes/{created['id']}").status_code == 404
     assert client.get("/resumes").json() == []

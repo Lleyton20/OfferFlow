@@ -23,9 +23,9 @@ from app.schemas.resume import (
     AIFeedback,
     ResumeCheck,
     ResumeRead,
+    TailoringSuggestions,
     TailorRequest,
     TailorResponse,
-    TailoringSuggestions,
 )
 from app.schemas.user import (
     ForgotPasswordRequest,

@@ -1,6 +1,7 @@
 import os
 
 import anthropic
+from anthropic.types import MessageParam
 
 from app.models.chat import ChatMessage
 
@@ -17,8 +18,7 @@ SYSTEM_PROMPT_TEMPLATE = (
 )
 
 NOT_CONFIGURED_MESSAGE = (
-    "AI isn't configured yet — set ANTHROPIC_API_KEY on the backend to enable the "
-    "career assistant."
+    "AI isn't configured yet — set ANTHROPIC_API_KEY on the backend to enable the career assistant."
 )
 ERROR_MESSAGE = "Something went wrong reaching the AI service. Try again in a moment."
 
@@ -28,7 +28,10 @@ def get_reply(context_summary: str, message_history: list[ChatMessage]) -> str:
     assistant-role reply rather than a failed request, so the chat UI never
     has to special-case a broken turn."""
     client = anthropic.Anthropic()
-    messages = [{"role": m.role, "content": m.content} for m in message_history]
+    messages: list[MessageParam] = [
+        {"role": "user" if m.role == "user" else "assistant", "content": m.content}
+        for m in message_history
+    ]
 
     try:
         response = client.messages.create(

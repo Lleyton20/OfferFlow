@@ -22,9 +22,10 @@ def _get_session_or_404(db: Session, user_id: int, session_id: int):
 
 
 def _validate_application_id(db: Session, user_id: int, application_id: int | None) -> None:
-    if application_id is not None and application_service.get_application(
-        db, user_id, application_id
-    ) is None:
+    if (
+        application_id is not None
+        and application_service.get_application(db, user_id, application_id) is None
+    ):
         raise HTTPException(status_code=400, detail="Application not found")
 
 

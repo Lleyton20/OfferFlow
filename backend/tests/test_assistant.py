@@ -47,8 +47,24 @@ def test_assistant_context_reflects_real_data(auth_client):
 
 
 def test_messages_isolated_between_users(client):
-    client.post("/auth/register", json={"email": "chatA@example.com", "password": "password123", "full_name": "A", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "chatA@example.com",
+            "password": "password123",
+            "full_name": "A",
+            "birthday": "2000-01-01",
+        },
+    )
     client.post("/assistant/messages", json={"content": "secret question"})
 
-    client.post("/auth/register", json={"email": "chatB@example.com", "password": "password123", "full_name": "B", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "chatB@example.com",
+            "password": "password123",
+            "full_name": "B",
+            "birthday": "2000-01-01",
+        },
+    )
     assert client.get("/assistant/messages").json() == []

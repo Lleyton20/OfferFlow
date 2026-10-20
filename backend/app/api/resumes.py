@@ -18,9 +18,7 @@ def _get_resume_or_404(db: Session, user_id: int, resume_id: int):
 
 
 @router.get("", response_model=list[ResumeRead])
-def list_resumes(
-    db: Session = Depends(get_db), current_user: User = Depends(get_current_user)
-):
+def list_resumes(db: Session = Depends(get_db), current_user: User = Depends(get_current_user)):
     return resume_service.list_resumes(db, current_user.id)
 
 
@@ -43,9 +41,7 @@ async def upload_resume(
 
     extracted_text = resume_service.extract_text(content, file.content_type)
     if not extracted_text.strip():
-        raise HTTPException(
-            status_code=400, detail="Couldn't extract any text from this file."
-        )
+        raise HTTPException(status_code=400, detail="Couldn't extract any text from this file.")
 
     ats_score, ats_checks, matched_keywords, missing_keywords = resume_service.score_resume(
         extracted_text, job_description
@@ -54,12 +50,13 @@ async def upload_resume(
         extracted_text, job_description
     )
 
-    storage_path = resume_service.save_upload(current_user.id, file.filename, content)
+    filename = file.filename or "resume"
+    storage_path = resume_service.save_upload(current_user.id, filename, content)
 
     return resume_service.create_resume(
         db,
         user_id=current_user.id,
-        filename=file.filename,
+        filename=filename,
         content_type=file.content_type,
         storage_path=storage_path,
         extracted_text=extracted_text,

@@ -8,15 +8,13 @@ SMTP_USER = os.getenv("SMTP_USER")
 SMTP_PASSWORD = os.getenv("SMTP_PASSWORD")
 SMTP_FROM = os.getenv("SMTP_FROM", SMTP_USER or "")
 
-IS_CONFIGURED = bool(SMTP_HOST and SMTP_USER and SMTP_PASSWORD)
-
 
 def send_password_reset_email(to_email: str, reset_url: str) -> bool:
     """Returns True if an email was actually sent. False if SMTP isn't
     configured — callers should not treat that as an error (see auth.py:
     the API response never reveals whether email delivery succeeded, to
     avoid leaking whether an account exists)."""
-    if not IS_CONFIGURED:
+    if not (SMTP_HOST and SMTP_USER and SMTP_PASSWORD):
         return False
 
     message = EmailMessage()

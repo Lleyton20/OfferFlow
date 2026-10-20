@@ -13,7 +13,9 @@ def list_contacts(db: Session, user_id: int) -> list[Contact]:
     return list(
         db.scalars(
             _with_interactions(
-                select(Contact).where(Contact.user_id == user_id).order_by(Contact.created_at.desc())
+                select(Contact)
+                .where(Contact.user_id == user_id)
+                .order_by(Contact.created_at.desc())
             )
         )
     )

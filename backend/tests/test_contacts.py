@@ -79,9 +79,7 @@ def test_delete_interaction(auth_client):
         json={"date": "2026-08-15", "note": "Follow-up email sent."},
     ).json()
 
-    response = auth_client.delete(
-        f"/contacts/{created['id']}/interactions/{interaction['id']}"
-    )
+    response = auth_client.delete(f"/contacts/{created['id']}/interactions/{interaction['id']}")
     assert response.status_code == 204
 
     fetched = auth_client.get(f"/contacts/{created['id']}").json()
@@ -94,10 +92,26 @@ def test_delete_interaction_not_found(auth_client):
 
 
 def test_contact_isolated_between_users(client):
-    client.post("/auth/register", json={"email": "contactA@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "contactA@example.com",
+            "password": "password123",
+            "full_name": "Test User",
+            "birthday": "2000-01-01",
+        },
+    )
     created = client.post("/contacts", json=_sample_contact()).json()
 
-    client.post("/auth/register", json={"email": "contactB@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "contactB@example.com",
+            "password": "password123",
+            "full_name": "Test User",
+            "birthday": "2000-01-01",
+        },
+    )
 
     assert client.get(f"/contacts/{created['id']}").status_code == 404
     assert client.get("/contacts").json() == []

@@ -16,9 +16,7 @@ def _isolate_uploads(monkeypatch, tmp_path):
 @pytest.fixture()
 def client(tmp_path):
     db_path = tmp_path / "test.db"
-    engine = create_engine(
-        f"sqlite:///{db_path}", connect_args={"check_same_thread": False}
-    )
+    engine = create_engine(f"sqlite:///{db_path}", connect_args={"check_same_thread": False})
     TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
     Base.metadata.create_all(bind=engine)
 
@@ -38,6 +36,12 @@ def client(tmp_path):
 @pytest.fixture()
 def auth_client(client):
     client.post(
-        "/auth/register", json={"email": "student@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"}
+        "/auth/register",
+        json={
+            "email": "student@example.com",
+            "password": "password123",
+            "full_name": "Test User",
+            "birthday": "2000-01-01",
+        },
     )
     return client

@@ -92,15 +92,30 @@ def test_delete_application(auth_client):
 
 
 def test_application_isolated_between_users(client):
-    client.post("/auth/register", json={"email": "userA@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "userA@example.com",
+            "password": "password123",
+            "full_name": "Test User",
+            "birthday": "2000-01-01",
+        },
+    )
     created = client.post("/applications", json=_sample_application()).json()
 
-    client.post("/auth/register", json={"email": "userB@example.com", "password": "password123", "full_name": "Test User", "birthday": "2000-01-01"})
+    client.post(
+        "/auth/register",
+        json={
+            "email": "userB@example.com",
+            "password": "password123",
+            "full_name": "Test User",
+            "birthday": "2000-01-01",
+        },
+    )
 
     assert client.get(f"/applications/{created['id']}").status_code == 404
     assert (
-        client.patch(f"/applications/{created['id']}", json={"status": "Offer"}).status_code
-        == 404
+        client.patch(f"/applications/{created['id']}", json={"status": "Offer"}).status_code == 404
     )
     assert client.delete(f"/applications/{created['id']}").status_code == 404
     assert client.get("/applications").json() == []

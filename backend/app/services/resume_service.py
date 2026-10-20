@@ -15,9 +15,35 @@ MAX_FILE_SIZE = 5 * 1024 * 1024  # 5MB
 ALLOWED_CONTENT_TYPES = {"application/pdf", "text/plain"}
 
 _STOPWORDS = {
-    "the", "a", "an", "and", "or", "to", "of", "in", "on", "for", "with", "is",
-    "are", "as", "by", "at", "from", "this", "that", "be", "will", "have", "has",
-    "you", "your", "we", "our", "job", "role",
+    "the",
+    "a",
+    "an",
+    "and",
+    "or",
+    "to",
+    "of",
+    "in",
+    "on",
+    "for",
+    "with",
+    "is",
+    "are",
+    "as",
+    "by",
+    "at",
+    "from",
+    "this",
+    "that",
+    "be",
+    "will",
+    "have",
+    "has",
+    "you",
+    "your",
+    "we",
+    "our",
+    "job",
+    "role",
 }
 
 
@@ -29,12 +55,13 @@ def extract_text(content: bytes, content_type: str) -> str:
 
 
 def _keywords(text: str) -> set[str]:
-    words = re.findall(r"[a-zA-Z][a-zA-Z+.#]{1,}", text.lower())
-    words = (w.rstrip(".") for w in words)
+    words = (w.rstrip(".") for w in re.findall(r"[a-zA-Z][a-zA-Z+.#]{1,}", text.lower()))
     return {w for w in words if w not in _STOPWORDS and len(w) > 2}
 
 
-def score_resume(resume_text: str, job_description: str | None) -> tuple[int, list[dict], list[str], list[str]]:
+def score_resume(
+    resume_text: str, job_description: str | None
+) -> tuple[int, list[dict], list[str], list[str]]:
     resume_keywords = _keywords(resume_text)
     checks: list[dict] = []
     score = 0
@@ -76,7 +103,11 @@ def score_resume(resume_text: str, job_description: str | None) -> tuple[int, li
     if length_ok:
         score += 15
         checks.append(
-            {"check": "Length", "passed": True, "detail": f"{word_count} words — a reasonable length."}
+            {
+                "check": "Length",
+                "passed": True,
+                "detail": f"{word_count} words — a reasonable length.",
+            }
         )
     else:
         checks.append(

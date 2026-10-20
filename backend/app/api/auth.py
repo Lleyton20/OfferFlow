@@ -1,4 +1,5 @@
 import os
+from typing import Literal
 
 from fastapi import APIRouter, Depends, HTTPException, Response
 from sqlalchemy.orm import Session
@@ -22,6 +23,8 @@ from app.services.auth_service import (
     get_user_by_email,
     get_user_by_reset_token,
     register_user,
+)
+from app.services.auth_service import (
     reset_password as reset_password_service,
 )
 
@@ -36,7 +39,7 @@ FRONTEND_URL = os.getenv("FRONTEND_URL", "http://localhost:5173")
 # cross-site, so the cookie needs SameSite=None + Secure (HTTPS-only) or browsers
 # will silently drop it on cross-origin requests. Toggle with ENV=production.
 IS_PRODUCTION = os.getenv("ENV", "development") == "production"
-COOKIE_SAMESITE = "none" if IS_PRODUCTION else "lax"
+COOKIE_SAMESITE: Literal["lax", "none"] = "none" if IS_PRODUCTION else "lax"
 COOKIE_SECURE = IS_PRODUCTION
 
 

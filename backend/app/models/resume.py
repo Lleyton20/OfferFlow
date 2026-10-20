@@ -27,5 +27,7 @@ class Resume(Base):
     matched_keywords: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     missing_keywords: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     ai_feedback: Mapped[dict | None] = mapped_column(JSON, nullable=True)
-    ai_feedback_status: Mapped[str] = mapped_column(String, nullable=False, default="not_configured")
+    ai_feedback_status: Mapped[str] = mapped_column(
+        String, nullable=False, default="not_configured"
+    )
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
