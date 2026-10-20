@@ -31,6 +31,15 @@ export function getMe(): Promise<User> {
   return apiFetch('/auth/me')
 }
 
+export interface PreferencesInput {
+  job_keywords?: string[]
+  digest_enabled?: boolean
+}
+
+export function updatePreferences(data: PreferencesInput): Promise<User> {
+  return apiFetch('/auth/me/preferences', { method: 'PATCH', body: JSON.stringify(data) })
+}
+
 export function forgotPassword(email: string): Promise<void> {
   return apiFetch('/auth/forgot-password', { method: 'POST', body: JSON.stringify({ email }) })
 }
