@@ -1,6 +1,6 @@
-import { motion } from 'motion/react'
 import { useState, type FormEvent } from 'react'
 import { RELATIONSHIP_TYPES, type Contact, type ContactInput } from '../types/contact'
+import { Modal } from './Modal'
 
 interface ContactFormModalProps {
   initial?: Contact
@@ -23,9 +23,6 @@ function toFormState(initial?: Contact): ContactInput {
   }
 }
 
-const inputClass =
-  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30'
-
 export function ContactFormModal({ initial, onSubmit, onClose, isSaving }: ContactFormModalProps) {
   const [form, setForm] = useState<ContactInput>(toFormState(initial))
 
@@ -44,41 +41,24 @@ export function ContactFormModal({ initial, onSubmit, onClose, isSaving }: Conta
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 12 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
-      >
-        <h2 className="mb-4 text-lg font-semibold text-white">
-          {initial ? 'Edit Contact' : 'Add Contact'}
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+    <Modal title={initial ? 'Edit contact' : 'Add contact'} onClose={onClose}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
               Name
               <input
                 required
-                className={inputClass}
+                className="input"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+            <label className="field label">
               Relationship
               <input
                 list="relationship-options"
                 required
-                className={inputClass}
+                className="input"
                 value={form.relationship_type}
                 onChange={(e) => setForm({ ...form, relationship_type: e.target.value })}
               />
@@ -90,96 +70,85 @@ export function ContactFormModal({ initial, onSubmit, onClose, isSaving }: Conta
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
               Company
               <input
-                className={inputClass}
+                className="input"
                 value={form.company ?? ''}
                 onChange={(e) => setForm({ ...form, company: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Role / Title
+            <label className="field label">
+              Role or title
               <input
-                className={inputClass}
+                className="input"
                 value={form.role ?? ''}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
               />
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
               Email
               <input
                 type="email"
-                className={inputClass}
+                className="input"
                 value={form.email ?? ''}
                 onChange={(e) => setForm({ ...form, email: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+            <label className="field label">
               LinkedIn URL
               <input
-                className={inputClass}
+                className="input"
                 value={form.linkedin_url ?? ''}
                 onChange={(e) => setForm({ ...form, linkedin_url: e.target.value })}
               />
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Last Contacted
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
+              Last contacted
               <input
                 type="date"
-                className={inputClass}
+                className="input"
                 value={form.last_contacted_date ?? ''}
                 onChange={(e) => setForm({ ...form, last_contacted_date: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Follow Up On
+            <label className="field label">
+              Follow up on
               <input
                 type="date"
-                className={inputClass}
+                className="input"
                 value={form.follow_up_date ?? ''}
                 onChange={(e) => setForm({ ...form, follow_up_date: e.target.value })}
               />
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
+          <label className="field label">
             Notes
             <textarea
-              className={inputClass}
+              className="input"
               rows={3}
               value={form.notes ?? ''}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
           </label>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
-            >
+          <div className="sticky bottom-0 -mx-6 -mb-5 mt-2 flex justify-end gap-2 border-t border-line bg-surface px-6 py-4">
+            <button type="button" onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              disabled={isSaving}
-              className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
-            >
+            <button type="submit" disabled={isSaving} className="btn btn-primary">
               {isSaving ? 'Saving…' : 'Save'}
-            </motion.button>
+            </button>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+    </Modal>
   )
 }

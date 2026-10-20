@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'motion/react'
 import { useState, type FormEvent } from 'react'
 import { getResumes } from '../api/resumes'
 import { APPLICATION_STATUSES, type Application, type ApplicationInput } from '../types/application'
+import { Modal } from './Modal'
 
 interface ApplicationFormModalProps {
   initial?: Application
@@ -27,9 +27,6 @@ function toFormState(initial?: Application): ApplicationInput {
     resume_id: initial?.resume_id ?? null,
   }
 }
-
-const inputClass =
-  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30'
 
 export function ApplicationFormModal({
   initial,
@@ -61,63 +58,46 @@ export function ApplicationFormModal({
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 12 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
-      >
-        <h2 className="mb-4 text-lg font-semibold text-white">
-          {initial ? 'Edit Application' : 'Add Application'}
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+    <Modal title={initial ? 'Edit application' : 'Add application'} onClose={onClose}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
               Company
               <input
                 required
-                className={inputClass}
+                className="input"
                 value={form.company}
                 onChange={(e) => setForm({ ...form, company: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+            <label className="field label">
               Role
               <input
                 required
-                className={inputClass}
+                className="input"
                 value={form.role}
                 onChange={(e) => setForm({ ...form, role: e.target.value })}
               />
             </label>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Date Applied
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
+              Date applied
               <input
                 required
                 type="date"
-                className={inputClass}
+                className="input"
                 value={form.date_applied}
                 onChange={(e) => setForm({ ...form, date_applied: e.target.value })}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
+            <label className="field label">
               Status
               <input
                 list="status-options"
                 required
-                className={inputClass}
+                className="input"
                 value={form.status}
                 onChange={(e) => setForm({ ...form, status: e.target.value })}
               />
@@ -129,39 +109,39 @@ export function ApplicationFormModal({
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
-            Contact Person
+          <label className="field label">
+            Contact person
             <input
-              className={inputClass}
+              className="input"
               value={form.contact_person ?? ''}
               onChange={(e) => setForm({ ...form, contact_person: e.target.value })}
             />
           </label>
 
-          <label className="flex items-center gap-2 text-sm text-slate-400">
+          <label className="flex items-center gap-2 text-sm text-ink-soft">
             <input
               type="checkbox"
               checked={form.referral_used}
               onChange={(e) => setForm({ ...form, referral_used: e.target.checked })}
-              className="h-4 w-4 rounded border-slate-700 bg-slate-950 accent-emerald-500"
+              className="h-4 w-4 rounded border-line-strong accent-brand-600"
             />
             Referral used
           </label>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
-            Job Description
+          <label className="field label">
+            Job description
             <textarea
-              className={inputClass}
+              className="input"
               rows={2}
               value={form.job_description ?? ''}
               onChange={(e) => setForm({ ...form, job_description: e.target.value })}
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
+          <label className="field label">
             Resume used
             <select
-              className={inputClass}
+              className="input"
               value={form.resume_id ?? ''}
               onChange={(e) =>
                 setForm({ ...form, resume_id: e.target.value ? Number(e.target.value) : null })
@@ -176,32 +156,34 @@ export function ApplicationFormModal({
             </select>
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Strengths (comma-separated)
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
+              Strengths
               <input
-                className={inputClass}
+                className="input"
+                placeholder="Comma-separated"
                 value={strengthsInput}
                 onChange={(e) => setStrengthsInput(e.target.value)}
               />
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Weaknesses (comma-separated)
+            <label className="field label">
+              Weaknesses
               <input
-                className={inputClass}
+                className="input"
+                placeholder="Comma-separated"
                 value={weaknessesInput}
                 onChange={(e) => setWeaknessesInput(e.target.value)}
               />
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
-            Match Score (0-10)
+          <label className="field label">
+            Match score (0–10)
             <input
               type="number"
               min={0}
               max={10}
-              className={inputClass}
+              className="input"
               value={form.match_score ?? ''}
               onChange={(e) =>
                 setForm({
@@ -212,36 +194,25 @@ export function ApplicationFormModal({
             />
           </label>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
+          <label className="field label">
             Notes
             <textarea
-              className={inputClass}
+              className="input"
               rows={2}
               value={form.notes ?? ''}
               onChange={(e) => setForm({ ...form, notes: e.target.value })}
             />
           </label>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
-            >
+          <div className="sticky bottom-0 -mx-6 -mb-5 mt-2 flex justify-end gap-2 border-t border-line bg-surface px-6 py-4">
+            <button type="button" onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              disabled={isSaving}
-              className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
-            >
+            <button type="submit" disabled={isSaving} className="btn btn-primary">
               {isSaving ? 'Saving…' : 'Save'}
-            </motion.button>
+            </button>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+    </Modal>
   )
 }

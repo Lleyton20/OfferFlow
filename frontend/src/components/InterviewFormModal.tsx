@@ -1,8 +1,8 @@
 import { useQuery } from '@tanstack/react-query'
-import { motion } from 'motion/react'
 import { useState, type FormEvent } from 'react'
 import { getApplications } from '../api/applications'
 import { INTERVIEW_TYPES, type InterviewSession, type InterviewSessionInput } from '../types/interview'
+import { Modal } from './Modal'
 
 interface InterviewFormModalProps {
   initial?: InterviewSession
@@ -20,9 +20,6 @@ function toFormState(initial?: InterviewSession): InterviewSessionInput {
     prep_notes: initial?.prep_notes ?? '',
   }
 }
-
-const inputClass =
-  'rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30'
 
 export function InterviewFormModal({ initial, onSubmit, onClose, isSaving }: InterviewFormModalProps) {
   const [form, setForm] = useState<InterviewSessionInput>(toFormState(initial))
@@ -48,29 +45,12 @@ export function InterviewFormModal({ initial, onSubmit, onClose, isSaving }: Int
   }
 
   return (
-    <motion.div
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      onClick={onClose}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4 backdrop-blur-sm"
-    >
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95, y: 12 }}
-        animate={{ opacity: 1, scale: 1, y: 0 }}
-        exit={{ opacity: 0, scale: 0.95, y: 12 }}
-        transition={{ duration: 0.2, ease: 'easeOut' }}
-        onClick={(e) => e.stopPropagation()}
-        className="max-h-[90vh] w-full max-w-lg overflow-y-auto rounded-2xl border border-slate-800 bg-slate-900 p-6 shadow-2xl"
-      >
-        <h2 className="mb-4 text-lg font-semibold text-white">
-          {initial ? 'Edit Interview Prep' : 'New Interview Prep'}
-        </h2>
-        <form onSubmit={handleSubmit} className="space-y-3">
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
-            Linked Application (optional)
+    <Modal title={initial ? 'Edit interview prep' : 'New interview prep'} onClose={onClose}>
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <label className="field label">
+            Linked application
             <select
-              className={inputClass}
+              className="input"
               value={form.application_id ?? ''}
               onChange={(e) => handleApplicationChange(e.target.value)}
             >
@@ -83,23 +63,23 @@ export function InterviewFormModal({ initial, onSubmit, onClose, isSaving }: Int
             </select>
           </label>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
+          <label className="field label">
             Title
             <input
               required
-              className={inputClass}
+              className="input"
               value={form.title}
               onChange={(e) => setForm({ ...form, title: e.target.value })}
             />
           </label>
 
-          <div className="grid grid-cols-2 gap-3">
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Interview Type
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
+              Interview type
               <input
                 list="interview-type-options"
                 required
-                className={inputClass}
+                className="input"
                 value={form.interview_type}
                 onChange={(e) => setForm({ ...form, interview_type: e.target.value })}
               />
@@ -109,21 +89,21 @@ export function InterviewFormModal({ initial, onSubmit, onClose, isSaving }: Int
                 ))}
               </datalist>
             </label>
-            <label className="flex flex-col gap-1 text-sm text-slate-400">
-              Scheduled Date
+            <label className="field label">
+              Scheduled date
               <input
                 type="date"
-                className={inputClass}
+                className="input"
                 value={form.scheduled_date ?? ''}
                 onChange={(e) => setForm({ ...form, scheduled_date: e.target.value })}
               />
             </label>
           </div>
 
-          <label className="flex flex-col gap-1 text-sm text-slate-400">
-            Study Plan / Prep Notes
+          <label className="field label">
+            Study plan
             <textarea
-              className={inputClass}
+              className="input"
               rows={4}
               placeholder="What to review before this one…"
               value={form.prep_notes ?? ''}
@@ -131,26 +111,15 @@ export function InterviewFormModal({ initial, onSubmit, onClose, isSaving }: Int
             />
           </label>
 
-          <div className="flex justify-end gap-2 pt-2">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-md px-4 py-2 text-sm font-medium text-slate-400 transition hover:bg-slate-800 hover:text-slate-200"
-            >
+          <div className="sticky bottom-0 -mx-6 -mb-5 mt-2 flex justify-end gap-2 border-t border-line bg-surface px-6 py-4">
+            <button type="button" onClick={onClose} className="btn btn-secondary">
               Cancel
             </button>
-            <motion.button
-              whileHover={{ scale: 1.03 }}
-              whileTap={{ scale: 0.97 }}
-              type="submit"
-              disabled={isSaving}
-              className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
-            >
+            <button type="submit" disabled={isSaving} className="btn btn-primary">
               {isSaving ? 'Saving…' : 'Save'}
-            </motion.button>
+            </button>
           </div>
         </form>
-      </motion.div>
-    </motion.div>
+    </Modal>
   )
 }
