@@ -76,10 +76,23 @@ Application Tracking System
       and get a rewritten summary, which bullets to emphasize, and which
       keywords from the JD are missing (ephemeral — not persisted, since a
       resume can be tailored toward many different jobs).
-- [ ] Career recommendations
-- [ ] Job matching (would need a real job-listings data source this project
-      doesn't have — scoping this honestly is still open)
+- [x] Job matching — openings pulled every 6 hours from public sources
+      (SimplifyJobs' community internship and new-grad lists, plus company
+      boards on Greenhouse, Lever and Ashby), ranked per user against their
+      interests, resume skills and application history. Each recommendation
+      carries the reasons it was picked. See `backend/app/services/job_service.py`.
+- [x] Career recommendations — a daily email digest of new matches, opt-out in
+      settings, sent by a scheduled GitHub Actions workflow.
 - [ ] Personalized recruiting strategies
+
+## Browser Capture ✅ done
+- [x] Browser extension (Chrome, Edge, Brave, Arc, Firefox) that saves an
+      application when the user submits it, with the full job description,
+      location and hiring contacts. See [extension/README.md](../extension/README.md).
+- [x] Personal access tokens for the extension (hashed at rest, revocable,
+      last-used tracking).
+- [x] `POST /capture` with de-duplication by normalized job URL and by
+      company + role, filling gaps without overwriting manual edits.
 
 ## Account & Infrastructure Hardening (unplanned, added post-launch) ✅ done
 - [x] Forgot / reset password — token-based flow (1-hour expiry, single-use,

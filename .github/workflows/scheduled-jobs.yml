@@ -1,0 +1,51 @@
+name: Scheduled jobs
+
+# Refreshes job postings every 6 hours and sends the daily digest. The work runs in
+# the API itself; this workflow just calls it, which also wakes a sleeping free-tier
+# server. Needs two repository secrets: OFFERFLOW_API_URL and CRON_SECRET (the same
+# value as the API's CRON_SECRET environment variable).
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"
+    - cron: "0 14 * * *"
+  workflow_dispatch:
+    inputs:
+      task:
+        description: Which task to run
+        type: choice
+        options: [refresh, digest]
+        default: refresh
+
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Pick task
+        id: task
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "name=${{ inputs.task }}" >> "$GITHUB_OUTPUT"
+          elif [ "${{ github.event.schedule }}" = "0 14 * * *" ]; then
+            echo "name=digest" >> "$GITHUB_OUTPUT"
+          else
+            echo "name=refresh" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Call the API
+        env:
+          API_URL: ${{ secrets.OFFERFLOW_API_URL }}
+          CRON_SECRET: ${{ secrets.CRON_SECRET }}
+        run: |
+          if [ -z "$API_URL" ] || [ -z "$CRON_SECRET" ]; then
+            echo "::notice::OFFERFLOW_API_URL and CRON_SECRET secrets aren't set; skipping."
+            exit 0
+          fi
+          case "${{ steps.task.outputs.name }}" in
+            refresh) path="/internal/jobs/refresh" ;;
+            digest)  path="/internal/digests/send" ;;
+          esac
+          # Generous timeout and retries: a free-tier server can take a minute to wake.
+          curl --fail-with-body --silent --show-error \
+            --retry 3 --retry-delay 20 --retry-all-errors --max-time 600 \
+            -X POST -H "X-Cron-Secret: $CRON_SECRET" "${API_URL%/}$path"

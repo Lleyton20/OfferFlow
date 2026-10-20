@@ -56,6 +56,23 @@ OfferFlow provides a unified system for managing the entire recruiting pipeline 
 
 ## Core Features
 
+### Automatic Capture (browser extension)
+
+Hit submit on Greenhouse, Lever, Ashby, Workday, LinkedIn, Indeed or a company
+careers page and the application is saved to your board, with the role,
+location, full job description and any recruiters or hiring managers the posting
+lists. Duplicates are detected by job URL and by company and role. See
+[extension/README.md](extension/README.md).
+
+### Job Discovery & Alerts
+
+Every 6 hours OfferFlow pulls fresh internships, new-grad roles and fellowships
+from public sources: SimplifyJobs' community-maintained lists and companies'
+own job boards on Greenhouse, Lever and Ashby. Openings are ranked for each user
+against their interests, resume skills and application history, and every
+recommendation explains why it was picked. A daily email digest sends new
+matches (opt-out in settings).
+
 ### Application Tracking
 
 Track applications throughout the recruiting lifecycle.
