@@ -4,7 +4,7 @@
 
   const DEFAULTS = {
     apiUrl: 'https://offerflow-backend-u0eq.onrender.com',
-    appUrl: 'https://offer-flow-n7gvkgpuu-lleyton21.vercel.app',
+    appUrl: 'https://offerflow-lleyton.vercel.app',
     token: '',
     autoCapture: true,
   }
