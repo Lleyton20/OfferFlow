@@ -1,8 +1,8 @@
-import { motion, useScroll, useTransform } from 'motion/react'
+import { AnimatePresence, motion, useScroll, useTransform } from 'motion/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatedNumber } from '../components/AnimatedNumber'
-import { Logo } from '../components/Logo'
+import { Logo, LogoMark } from '../components/Logo'
 import { STATUS_COLORS } from '../lib/statusColors'
 import { APPLICATION_STATUSES } from '../types/application'
 
@@ -20,6 +20,30 @@ function Icon({ children }: { children: ReactNode }) {
 }
 
 const FEATURES = [
+  {
+    title: 'Captured as you apply',
+    description:
+      'The browser extension saves the role, description and hiring contacts the moment you hit submit, on almost any job site.',
+    icon: (
+      <>
+        <rect x="2.5" y="3.5" width="15" height="12" rx="2" />
+        <path d="M2.5 7h15" />
+        <path d="M7.5 11.5l1.8 1.8 3.7-3.8" />
+      </>
+    ),
+  },
+  {
+    title: 'Fresh roles, found for you',
+    description:
+      'New internships, new-grad roles and fellowships from company job boards, ranked against your resume, with alerts by email.',
+    icon: (
+      <>
+        <circle cx="9" cy="9" r="5.5" />
+        <path d="M13 13l4 4" />
+        <path d="M9 6.5v5M6.5 9h5" />
+      </>
+    ),
+  },
   {
     title: 'Application tracking',
     description:
@@ -57,31 +81,9 @@ const FEATURES = [
     ),
   },
   {
-    title: 'Interview prep',
+    title: 'Interview prep and analytics',
     description:
-      'A question bank, AI-generated mock questions for each interview, and ratings to track how prep is paying off.',
-    icon: (
-      <>
-        <path d="M3.5 4.5h13v8h-7l-3.5 3v-3H3.5z" />
-        <path d="M7 8.5h6" />
-      </>
-    ),
-  },
-  {
-    title: 'Career assistant',
-    description:
-      'Ask what to follow up on or how your pipeline looks. Answers are grounded in your own data.',
-    icon: (
-      <>
-        <path d="M10 2.5l1.6 4.4L16 8.5l-4.4 1.6L10 14.5l-1.6-4.4L4 8.5l4.4-1.6z" />
-        <path d="M15.5 14v3M14 15.5h3" />
-      </>
-    ),
-  },
-  {
-    title: 'Analytics',
-    description:
-      'Offer rate, conversion by stage and resume score trends, calculated from what you track. No spreadsheet.',
+      'Mock questions for each interview, an AI career assistant, and conversion rates computed from your own data.',
     icon: (
       <>
         <path d="M3 16.5h14" />
@@ -257,6 +259,212 @@ function PipelineStrip() {
   )
 }
 
+type CaptureStage = 'page' | 'click' | 'confirm' | 'saved'
+const CAPTURE_SEQUENCE: { stage: CaptureStage; ms: number }[] = [
+  { stage: 'page', ms: 1600 },
+  { stage: 'click', ms: 700 },
+  { stage: 'confirm', ms: 900 },
+  { stage: 'saved', ms: 2600 },
+]
+
+/** A looping mock of the extension: submit an application, watch it get saved. */
+function CaptureDemo() {
+  const [step, setStep] = useState(0)
+  const { stage } = CAPTURE_SEQUENCE[step]
+
+  useEffect(() => {
+    const id = setTimeout(() => setStep((s) => (s + 1) % CAPTURE_SEQUENCE.length), CAPTURE_SEQUENCE[step].ms)
+    return () => clearTimeout(id)
+  }, [step])
+
+  const submitted = stage === 'confirm' || stage === 'saved'
+
+  return (
+    <div className="relative overflow-hidden rounded-2xl border border-line bg-surface shadow-overlay">
+      <div className="flex items-center gap-2 border-b border-line bg-canvas px-4 py-3">
+        <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
+        <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
+        <span className="h-2.5 w-2.5 rounded-full bg-line-strong" />
+        <span className="ml-2 flex-1 truncate rounded-md bg-surface px-3 py-1 text-[11px] text-muted ring-1 ring-line">
+          job-boards.greenhouse.io/figma/jobs/5551234
+        </span>
+        <span className="flex h-6 w-6 items-center justify-center rounded-md ring-1 ring-line">
+          <span className="relative">
+            <LogoMark className="h-4 w-4" />
+            <AnimatePresence>
+              {stage === 'saved' && (
+                <motion.span
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  exit={{ scale: 0 }}
+                  className="absolute -top-1.5 -right-1.5 flex h-3 w-3 items-center justify-center rounded-full bg-brand-600 text-[7px] font-bold text-white ring-2 ring-canvas"
+                >
+                  ✓
+                </motion.span>
+              )}
+            </AnimatePresence>
+          </span>
+        </span>
+      </div>
+
+      <div className="relative h-72 p-6 text-left">
+        <AnimatePresence mode="wait" initial={false}>
+          {submitted ? (
+            <motion.div
+              key="thanks"
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0 }}
+              className="flex h-full flex-col items-center justify-center text-center"
+            >
+              <p className="text-lg font-semibold text-ink">Thank you for applying!</p>
+              <p className="mt-1 text-sm text-muted">The Figma recruiting team will be in touch.</p>
+            </motion.div>
+          ) : (
+            <motion.div key="form" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, y: -8 }}>
+              <p className="text-xs font-medium text-muted">Figma · New York, NY</p>
+              <p className="mt-1 text-lg font-semibold text-ink">Product Design Intern</p>
+              <div className="mt-5 space-y-2.5">
+                {['Full name', 'Email', 'Resume'].map((label, i) => (
+                  <div key={label} className="flex items-center gap-3">
+                    <span className="w-16 text-[11px] text-muted">{label}</span>
+                    <span className="h-7 flex-1 rounded-md border border-line bg-canvas px-2 text-[11px] leading-7 text-ink-soft">
+                      {['Lleyton Magama', 'lleyton@example.com', 'resume_v4.pdf'][i]}
+                    </span>
+                  </div>
+                ))}
+              </div>
+              <motion.span
+                animate={stage === 'click' ? { scale: [1, 0.94, 1] } : { scale: 1 }}
+                transition={{ duration: 0.35 }}
+                className="mt-5 inline-flex rounded-lg bg-ink px-4 py-2 text-xs font-semibold text-white"
+              >
+                Submit application
+              </motion.span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        <AnimatePresence>
+          {stage === 'saved' && (
+            <motion.div
+              initial={{ opacity: 0, y: 16, scale: 0.96 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={{ opacity: 0, y: 8 }}
+              transition={{ type: 'spring', stiffness: 420, damping: 32 }}
+              className="absolute right-4 bottom-4 flex max-w-64 gap-2.5 rounded-xl bg-ink px-3.5 py-3 text-left text-white shadow-overlay"
+            >
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded bg-brand-600 text-[9px] font-bold">
+                ✓
+              </span>
+              <span className="text-xs">
+                <span className="block font-semibold">Saved to OfferFlow</span>
+                <span className="text-brand-200">Figma · Product Design Intern</span>
+                <span className="block text-brand-200">+ 1 contact</span>
+              </span>
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </div>
+    </div>
+  )
+}
+
+const DISCOVER_SAMPLE = [
+  { company: 'Anthropic', title: 'Research Engineering Fellowship', type: 'Fellowship', reason: 'Matches your interest in machine learning' },
+  { company: 'Stripe', title: 'Software Engineer Intern, Summer 2027', type: 'Internship', reason: 'Uses python, react' },
+  { company: 'Ramp', title: 'Software Engineer, New Grad', type: 'New grad', reason: "Similar to roles you've applied to" },
+]
+
+function DiscoverDemo() {
+  return (
+    <div className="space-y-2.5">
+      {DISCOVER_SAMPLE.map((job, i) => (
+        <motion.div
+          key={job.company}
+          initial={{ opacity: 0, x: 24 }}
+          whileInView={{ opacity: 1, x: 0 }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: 0.55, delay: 0.15 + i * 0.12, ease: EASE }}
+          className="flex gap-3 rounded-xl border border-line bg-surface p-4 text-left shadow-card"
+        >
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-subtle text-sm font-semibold text-ink-soft ring-1 ring-line">
+            {job.company[0]}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-sm font-semibold text-ink">{job.title}</p>
+            <p className="text-xs text-muted">{job.company}</p>
+            <div className="mt-2 flex flex-wrap gap-1.5">
+              <span className="chip chip-neutral">{job.type}</span>
+              <motion.span
+                initial={{ opacity: 0, scale: 0.9 }}
+                whileInView={{ opacity: 1, scale: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5 + i * 0.12 }}
+                className="chip chip-brand"
+              >
+                {job.reason}
+              </motion.span>
+            </div>
+          </div>
+        </motion.div>
+      ))}
+    </div>
+  )
+}
+
+function Showcase({
+  eyebrow,
+  title,
+  body,
+  points,
+  visual,
+  flip,
+}: {
+  eyebrow: string
+  title: string
+  body: string
+  points: string[]
+  visual: ReactNode
+  flip?: boolean
+}) {
+  return (
+    <div className="grid items-center gap-10 lg:grid-cols-2 lg:gap-16">
+      <motion.div {...fadeUp} className={flip ? 'lg:order-2' : ''}>
+        <p className="eyebrow text-brand-700">{eyebrow}</p>
+        <h2 className="mt-3 text-3xl font-semibold tracking-tight text-ink sm:text-4xl">{title}</h2>
+        <p className="mt-4 text-base leading-relaxed text-muted">{body}</p>
+        <ul className="mt-6 space-y-2.5">
+          {points.map((point, i) => (
+            <motion.li
+              key={point}
+              initial={{ opacity: 0, x: -8 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.2 + i * 0.08, duration: 0.4 }}
+              className="flex gap-2.5 text-sm text-ink-soft"
+            >
+              <span className="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-brand-50 text-[10px] font-bold text-brand-700 ring-1 ring-brand-200">
+                ✓
+              </span>
+              {point}
+            </motion.li>
+          ))}
+        </ul>
+      </motion.div>
+      <motion.div
+        initial={{ opacity: 0, y: 24 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-80px' }}
+        transition={{ duration: 0.7, ease: EASE }}
+        className={flip ? 'lg:order-1' : ''}
+      >
+        {visual}
+      </motion.div>
+    </div>
+  )
+}
+
 export function LandingPage() {
   const heroRef = useRef<HTMLDivElement>(null)
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ['start start', 'end start'] })
@@ -365,6 +573,32 @@ export function LandingPage() {
           <PipelineStrip />
         </section>
 
+        <section className="mx-auto max-w-6xl space-y-28 px-4 pt-24 sm:px-6">
+          <Showcase
+            eyebrow="Browser extension"
+            title="Apply anywhere. It's already tracked."
+            body="Hit submit on Greenhouse, Lever, Workday, Ashby, LinkedIn or a company careers page, and the application lands on your board with everything attached."
+            points={[
+              'Role, company, location and the full job description',
+              'Recruiters and hiring managers listed on the posting',
+              'Never duplicated, even if you apply from two places',
+            ]}
+            visual={<CaptureDemo />}
+          />
+          <Showcase
+            flip
+            eyebrow="Discover"
+            title="New openings, picked for you."
+            body="OfferFlow watches company job boards and community-maintained lists for fresh internships, new-grad roles and fellowships, then ranks them against your resume and history."
+            points={[
+              'Every recommendation says why it was picked',
+              'A short email when something new matches',
+              'Applied, saved and dismissed roles stay out of the way',
+            ]}
+            visual={<DiscoverDemo />}
+          />
+        </section>
+
         <section className="mx-auto max-w-6xl px-4 py-24 sm:px-6">
           <motion.div {...fadeUp} className="mx-auto max-w-2xl text-center">
             <p className="eyebrow text-brand-700">Features</p>
@@ -372,8 +606,8 @@ export function LandingPage() {
               Everything about your search, connected
             </h2>
             <p className="mt-4 text-base text-muted">
-              Six tools that used to live in six different places, now one workspace that knows
-              about all of them at once.
+              From finding the role to signing the offer, every step lives in one workspace that
+              knows about all of them at once.
             </p>
           </motion.div>
 
