@@ -1,6 +1,4 @@
 # OfferFlow
-From application to offer. An intelligent platform for managing the entire internship and job search journey.
-# OfferFlow
 
 <div align="center">
 
@@ -8,11 +6,10 @@ From application to offer. An intelligent platform for managing the entire inter
 
 An AI-powered career operating system that helps students and early-career professionals manage applications, prepare for interviews, track networking efforts, and optimize their job search journey.
 
-[![Status](https://img.shields.io/badge/status-in%20development-blue)]()
-[![Python](https://img.shields.io/badge/Python-3.11+-green)]()
-[![FastAPI](https://img.shields.io/badge/FastAPI-backend-009688)]()
-[![React](https://img.shields.io/badge/React-frontend-61DAFB)]()
-[![License](https://img.shields.io/badge/license-MIT-orange)]()
+[![CI](https://github.com/Lleyton20/OfferFlow/actions/workflows/ci.yml/badge.svg)](https://github.com/Lleyton20/OfferFlow/actions/workflows/ci.yml)
+[![Python](https://img.shields.io/badge/Python-3.10+-0f7a45)](backend/pyproject.toml)
+[![FastAPI](https://img.shields.io/badge/FastAPI-backend-0f7a45)](backend/)
+[![React](https://img.shields.io/badge/React_19-frontend-0f7a45)](frontend/)
 
 </div>
 
@@ -288,34 +285,53 @@ offerflow/
 
 ## Getting Started
 
-### Backend
+### With Docker (one command)
+
+```bash
+docker compose up --build
+```
+
+This starts Postgres, the API at `http://localhost:8000` (docs at `/docs`) and
+the app at `http://localhost:5173`, with migrations applied automatically. AI
+features and password-reset email are optional: copy `.env.example` to `.env`
+and uncomment the keys you want to set.
+
+### Without Docker
+
+**Backend** (Python 3.10+)
 
 ```bash
 cd backend
-python3 -m venv venv
-source venv/bin/activate      # Windows: venv\Scripts\activate
-pip install -r requirements.txt
-cp .env.example .env          # defaults to SQLite, no changes needed for local dev
-uvicorn app.main:app --reload
+python3 -m venv venv && source venv/bin/activate   # Windows: venv\Scripts\activate
+pip install -r requirements-dev.txt
+cp .env.example .env                                # SQLite by default, no changes needed
+alembic upgrade head
+uvicorn app.main:app --reload --env-file .env
 ```
 
-The API runs at `http://localhost:8000` (interactive docs at `/docs`) and
-persists to `backend/offerflow.db` (SQLite). To use Postgres instead, set
-`DATABASE_URL` in `.env` — see [docs/architecture.md](docs/architecture.md).
-
-Run the test suite with `pytest` (from `backend/`, with the venv activated).
-
-### Frontend
+**Frontend** (Node 24)
 
 ```bash
 cd frontend
 npm install
-cp .env.example .env          # defaults to http://localhost:8000
+cp .env.example .env                                # points at http://localhost:8000
 npm run dev
 ```
 
-The app runs at `http://localhost:5173` and expects the backend above to be
-running.
+### Quality checks
+
+These are the same checks CI runs on every push and pull request.
+
+| | Backend (`backend/`) | Frontend (`frontend/`) |
+|---|---|---|
+| Lint | `ruff check .` | `npm run lint` |
+| Format | `ruff format --check .` | — |
+| Types | `mypy` | `npm run typecheck` |
+| Tests | `pytest --cov` | `npm test` |
+| Build | — | `npm run build` |
+
+Install the git hooks once with `pre-commit install` (from the repo root, with
+the backend venv active) to run linting and formatting before every commit.
 
 ### Deploying
 
@@ -343,7 +359,7 @@ into a single intelligent platform.
 
 **Lleyton Magama**
 
-Computer Science Student  
+Computer Science Student
 Grambling State University
 
 GitHub: https://github.com/lleyton
