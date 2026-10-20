@@ -1,6 +1,6 @@
 import { useQuery } from '@tanstack/react-query'
 import { motion } from 'motion/react'
-import { useMemo } from 'react'
+import { useMemo, type ReactNode } from 'react'
 import { getApplications } from '../api/applications'
 import { getContacts } from '../api/contacts'
 import { getInterviewSessions } from '../api/interviews'
@@ -9,24 +9,48 @@ import { AnimatedNumber } from '../components/AnimatedNumber'
 import { AppHeader } from '../components/AppHeader'
 import { StatusBarChart } from '../components/charts/StatusBarChart'
 import { TrendChart } from '../components/charts/TrendChart'
+import { PageHeader } from '../components/PageHeader'
 import { STATUS_COLORS, STATUS_COLOR_FALLBACK } from '../lib/statusColors'
 import { APPLICATION_STATUSES } from '../types/application'
 
 const CLOSED = new Set(['Offer', 'Rejected'])
 
-function StatTile({ label, value, suffix = '', accent }: { label: string; value: number; suffix?: string; accent: string }) {
+function StatTile({ label, value, suffix = '' }: { label: string; value: number; suffix?: string }) {
   return (
-    <motion.div
-      initial={{ opacity: 0, y: 10 }}
-      animate={{ opacity: 1, y: 0 }}
-      className={`rounded-xl bg-gradient-to-br p-4 ring-1 ring-inset ${accent}`}
-    >
-      <p className="text-2xl font-semibold text-white">
+    <div className="bg-surface p-5">
+      <p className="text-xs font-medium text-muted">{label}</p>
+      <p className="mt-2 text-[28px] leading-none font-semibold tracking-tight tabular-nums text-ink">
         <AnimatedNumber value={value} />
-        {suffix}
+        {suffix && <span className="ml-0.5 text-base font-medium text-faint">{suffix}</span>}
       </p>
-      <p className="mt-0.5 text-xs font-medium text-slate-300">{label}</p>
-    </motion.div>
+    </div>
+  )
+}
+
+function MiniStat({ label, value, suffix = '' }: { label: string; value: number; suffix?: string }) {
+  return (
+    <div className="well px-4 py-3">
+      <p className="text-xl font-semibold tracking-tight tabular-nums text-ink">
+        <AnimatedNumber value={value} />
+        {suffix && <span className="text-sm font-medium text-faint">{suffix}</span>}
+      </p>
+      <p className="mt-0.5 text-xs text-muted">{label}</p>
+    </div>
+  )
+}
+
+function Panel({ title, description, children }: { title: string; description: string; children: ReactNode }) {
+  return (
+    <motion.section
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.3 }}
+      className="card p-5"
+    >
+      <h2 className="text-sm font-semibold text-ink">{title}</h2>
+      <p className="mt-0.5 mb-5 text-xs text-muted">{description}</p>
+      {children}
+    </motion.section>
   )
 }
 
@@ -42,10 +66,10 @@ export function AnalyticsPage() {
   const { data: contacts } = useQuery({ queryKey: ['contacts'], queryFn: getContacts })
   const { data: interviews } = useQuery({ queryKey: ['interviews'], queryFn: getInterviewSessions })
 
-  const apps = applications ?? []
-  const allResumes = resumes ?? []
-  const allContacts = contacts ?? []
-  const allInterviews = interviews ?? []
+  const apps = useMemo(() => applications ?? [], [applications])
+  const allResumes = useMemo(() => resumes ?? [], [resumes])
+  const allContacts = useMemo(() => contacts ?? [], [contacts])
+  const allInterviews = useMemo(() => interviews ?? [], [interviews])
 
   const stats = useMemo(() => {
     const total = apps.length
@@ -126,61 +150,57 @@ export function AnalyticsPage() {
   }, [allResumes])
 
   return (
-    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
-      <AppHeader active="analytics" subtitle="Career analytics" />
+    <div className="min-h-screen bg-canvas">
+      <AppHeader active="analytics" />
 
-      <main className="mx-auto max-w-5xl px-6 py-6">
-        <div className="mb-6 grid grid-cols-2 gap-3 sm:grid-cols-4">
-          <StatTile label="Total applications" value={stats.total} accent="from-teal-500/20 to-teal-500/5 ring-teal-500/30" />
-          <StatTile label="Offer rate" value={stats.offerRate} suffix="%" accent="from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30" />
-          <StatTile label="Rejection rate" value={stats.rejectionRate} suffix="%" accent="from-red-500/20 to-red-500/5 ring-red-500/30" />
-          <StatTile label="Avg. resume score" value={stats.avgScore} suffix="/100" accent="from-sky-500/20 to-sky-500/5 ring-sky-500/30" />
+      <main className="page">
+        <PageHeader
+          title="Analytics"
+          description="How your search is converting, computed from your own data."
+        />
+
+        <div className="mb-6 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line shadow-card lg:grid-cols-4">
+          <StatTile label="Total applications" value={stats.total} />
+          <StatTile label="Offer rate" value={stats.offerRate} suffix="%" />
+          <StatTile label="Rejection rate" value={stats.rejectionRate} suffix="%" />
+          <StatTile label="Avg. resume score" value={stats.avgScore} suffix="/100" />
         </div>
 
-        <div className="mb-6 grid gap-4 lg:grid-cols-2">
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <h2 className="text-sm font-semibold text-white">Applications by status</h2>
-            <p className="mb-4 mt-0.5 text-xs text-slate-500">
-              Pipeline stages darken as they progress; offers and rejections are reserved colors.
-            </p>
+        <div className="grid gap-4 lg:grid-cols-2">
+          <Panel
+            title="Applications by status"
+            description="Pipeline stages darken as they progress. Offers and rejections use reserved colors."
+          >
             {stats.total > 0 ? (
               <StatusBarChart data={statusBreakdown} />
             ) : (
-              <p className="text-sm text-slate-500">No applications yet.</p>
+              <p className="text-sm text-muted">No applications yet.</p>
             )}
-          </div>
+          </Panel>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <h2 className="text-sm font-semibold text-white">Applications over time</h2>
-            <p className="mb-4 mt-0.5 text-xs text-slate-500">Count of applications by month applied.</p>
-            <TrendChart data={applicationsOverTime} color="#3987e5" ariaLabel="Applications per month" />
-          </div>
+          <Panel title="Applications over time" description="Applications submitted per month.">
+            <TrendChart data={applicationsOverTime} color="#0f7a45" ariaLabel="Applications per month" />
+          </Panel>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <h2 className="text-sm font-semibold text-white">Resume score trend</h2>
-            <p className="mb-4 mt-0.5 text-xs text-slate-500">ATS score of each resume, in upload order.</p>
-            <TrendChart data={resumeScoreTrend} color="#d95926" valueSuffix="/100" ariaLabel="Resume ATS score trend" />
-          </div>
+          <Panel title="Resume score trend" description="ATS score of each resume, in upload order.">
+            <TrendChart data={resumeScoreTrend} color="#2a2f2c" valueSuffix="/100" ariaLabel="Resume ATS score trend" />
+          </Panel>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <h2 className="text-sm font-semibold text-white">Networking effectiveness</h2>
-            <p className="mb-4 mt-0.5 text-xs text-slate-500">How your network is helping the search.</p>
+          <Panel title="Networking" description="How your network is supporting the search.">
             <div className="grid grid-cols-3 gap-3">
-              <StatTile label="Contacts" value={allContacts.length} accent="from-teal-500/20 to-teal-500/5 ring-teal-500/30" />
-              <StatTile label="Conversations logged" value={stats.totalInteractions} accent="from-emerald-500/20 to-emerald-500/5 ring-emerald-500/30" />
-              <StatTile label="Overdue follow-ups" value={stats.overdue} accent="from-amber-500/20 to-amber-500/5 ring-amber-500/30" />
+              <MiniStat label="Contacts" value={allContacts.length} />
+              <MiniStat label="Conversations" value={stats.totalInteractions} />
+              <MiniStat label="Overdue" value={stats.overdue} />
             </div>
-          </div>
+          </Panel>
 
-          <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-            <h2 className="text-sm font-semibold text-white">Interview performance</h2>
-            <p className="mb-4 mt-0.5 text-xs text-slate-500">How prep is translating into interviews.</p>
+          <Panel title="Interview performance" description="How preparation is translating into interviews.">
             <div className="grid grid-cols-3 gap-3">
-              <StatTile label="Upcoming" value={stats.upcomingInterviews} accent="from-sky-500/20 to-sky-500/5 ring-sky-500/30" />
-              <StatTile label="Completed" value={stats.completedInterviews} accent="from-teal-500/20 to-teal-500/5 ring-teal-500/30" />
-              <StatTile label="Avg. rating" value={stats.avgPerformance} suffix="/5" accent="from-amber-500/20 to-amber-500/5 ring-amber-500/30" />
+              <MiniStat label="Upcoming" value={stats.upcomingInterviews} />
+              <MiniStat label="Completed" value={stats.completedInterviews} />
+              <MiniStat label="Avg. rating" value={stats.avgPerformance} suffix="/5" />
             </div>
-          </div>
+          </Panel>
         </div>
       </main>
     </div>

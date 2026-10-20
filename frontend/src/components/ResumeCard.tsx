@@ -1,14 +1,46 @@
 import { useMutation } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
-import { useState } from 'react'
+import { useState, type ReactNode } from 'react'
 import { tailorResume } from '../api/resumes'
 import type { Resume } from '../types/resume'
 import { LoadingSpinner } from './LoadingSpinner'
 
-function scoreColor(score: number) {
-  if (score >= 80) return 'text-emerald-400 bg-emerald-500/10'
-  if (score >= 50) return 'text-amber-400 bg-amber-500/10'
-  return 'text-red-400 bg-red-500/10'
+function scoreChip(score: number) {
+  if (score >= 80) return 'chip-brand'
+  if (score >= 50) return 'chip-warning'
+  return 'chip-danger'
+}
+
+function Section({ title, children }: { title: string; children: ReactNode }) {
+  return (
+    <div>
+      <h4 className="eyebrow mb-2">{title}</h4>
+      {children}
+    </div>
+  )
+}
+
+function BulletList({ items }: { items: string[] }) {
+  return (
+    <ul className="ml-4 list-disc space-y-1 text-sm text-ink-soft marker:text-faint">
+      {items.map((item) => (
+        <li key={item}>{item}</li>
+      ))}
+    </ul>
+  )
+}
+
+function KeywordList({ keywords, tone }: { keywords: string[]; tone: 'brand' | 'danger' | 'neutral' }) {
+  if (keywords.length === 0) return <span className="text-xs text-muted">None</span>
+  return (
+    <div className="flex flex-wrap gap-1.5">
+      {keywords.map((k) => (
+        <span key={k} className={`chip chip-${tone}`}>
+          {k}
+        </span>
+      ))}
+    </div>
+  )
 }
 
 interface ResumeCardProps {
@@ -26,26 +58,24 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-black/20"
+      exit={{ opacity: 0 }}
+      className="card p-5"
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-medium text-white">{resume.filename}</p>
-          <p className="text-xs text-slate-500">
+        <div className="min-w-0">
+          <p className="truncate font-medium text-ink">{resume.filename}</p>
+          <p className="mt-0.5 text-xs text-muted">
             Uploaded {new Date(resume.created_at).toLocaleDateString()}
           </p>
         </div>
-        <div className="flex items-center gap-3">
-          <span className={`rounded-full px-3 py-1 text-sm font-semibold ${scoreColor(resume.ats_score)}`}>
-            {resume.ats_score}/100
+        <div className="flex shrink-0 items-center gap-4">
+          <span className={`chip ${scoreChip(resume.ats_score)} px-2.5 py-1 text-sm tabular-nums`}>
+            {resume.ats_score}
+            <span className="font-normal opacity-70">/100</span>
           </span>
-          <button
-            onClick={() => onDelete(resume)}
-            className="text-xs text-red-400 transition hover:text-red-300"
-          >
+          <button onClick={() => onDelete(resume)} className="link-danger text-xs font-medium">
             Delete
           </button>
         </div>
@@ -53,9 +83,10 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
 
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="mt-3 text-xs font-medium text-emerald-400 transition hover:text-emerald-300"
+        aria-expanded={expanded}
+        className="link mt-4 text-xs"
       >
-        {expanded ? 'Hide details' : 'Show ATS breakdown & AI feedback'}
+        {expanded ? 'Hide details' : 'View ATS breakdown and AI feedback'}
       </button>
 
       <AnimatePresence initial={false}>
@@ -64,136 +95,91 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="mt-4 space-y-4 border-t border-slate-800 pt-4">
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  ATS Checks
-                </h4>
-                <ul className="space-y-1.5">
+            <div className="mt-4 space-y-6 border-t border-line pt-5">
+              <Section title="ATS checks">
+                <ul className="space-y-2">
                   {resume.ats_checks.map((check) => (
-                    <li key={check.check} className="flex items-start gap-2 text-sm">
-                      <span className={check.passed ? 'text-emerald-400' : 'text-red-400'}>
-                        {check.passed ? '✓' : '✗'}
+                    <li key={check.check} className="flex items-start gap-2.5 text-sm">
+                      <span
+                        className={`mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] font-bold ${
+                          check.passed ? 'bg-brand-50 text-brand-700' : 'bg-danger-soft text-danger'
+                        }`}
+                        aria-label={check.passed ? 'Passed' : 'Failed'}
+                      >
+                        {check.passed ? '✓' : '✕'}
                       </span>
-                      <span className="text-slate-300">
-                        <span className="font-medium text-slate-200">{check.check}:</span>{' '}
-                        {check.detail}
+                      <span className="text-ink-soft">
+                        <span className="font-medium text-ink">{check.check}.</span> {check.detail}
                       </span>
                     </li>
                   ))}
                 </ul>
-              </div>
+              </Section>
 
               {(resume.matched_keywords.length > 0 || resume.missing_keywords.length > 0) && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Matched Keywords
-                    </h4>
-                    <div className="flex flex-wrap gap-1.5">
-                      {resume.matched_keywords.map((k) => (
-                        <span
-                          key={k}
-                          className="rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs text-emerald-400"
-                        >
-                          {k}
-                        </span>
-                      ))}
-                      {resume.matched_keywords.length === 0 && (
-                        <span className="text-xs text-slate-500">None</span>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                      Missing Keywords
-                    </h4>
-                    <div className="flex flex-wrap gap-1.5">
-                      {resume.missing_keywords.map((k) => (
-                        <span
-                          key={k}
-                          className="rounded-full bg-red-500/10 px-2 py-0.5 text-xs text-red-400"
-                        >
-                          {k}
-                        </span>
-                      ))}
-                      {resume.missing_keywords.length === 0 && (
-                        <span className="text-xs text-slate-500">None</span>
-                      )}
-                    </div>
-                  </div>
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <Section title="Matched keywords">
+                    <KeywordList keywords={resume.matched_keywords} tone="brand" />
+                  </Section>
+                  <Section title="Missing keywords">
+                    <KeywordList keywords={resume.missing_keywords} tone="danger" />
+                  </Section>
                 </div>
               )}
 
-              <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  AI Feedback
-                </h4>
+              <Section title="AI feedback">
                 {resume.ai_feedback_status === 'ok' && resume.ai_feedback && (
-                  <div className="space-y-2 text-sm text-slate-300">
-                    <p>{resume.ai_feedback.overall_summary}</p>
+                  <div className="space-y-4 text-sm">
+                    <p className="text-ink-soft">{resume.ai_feedback.overall_summary}</p>
                     <div>
-                      <p className="font-medium text-emerald-400">Strengths</p>
-                      <ul className="ml-4 list-disc text-slate-400">
-                        {resume.ai_feedback.strengths.map((s) => (
-                          <li key={s}>{s}</li>
-                        ))}
-                      </ul>
+                      <p className="mb-1 font-medium text-ink">Strengths</p>
+                      <BulletList items={resume.ai_feedback.strengths} />
                     </div>
                     <div>
-                      <p className="font-medium text-amber-400">Weaknesses</p>
-                      <ul className="ml-4 list-disc text-slate-400">
-                        {resume.ai_feedback.weaknesses.map((w) => (
-                          <li key={w}>{w}</li>
-                        ))}
-                      </ul>
+                      <p className="mb-1 font-medium text-ink">Weaknesses</p>
+                      <BulletList items={resume.ai_feedback.weaknesses} />
                     </div>
                     <div>
-                      <p className="font-medium text-sky-400">Suggestions</p>
-                      <ul className="ml-4 list-disc text-slate-400">
-                        {resume.ai_feedback.suggestions.map((s) => (
-                          <li key={s}>{s}</li>
-                        ))}
-                      </ul>
+                      <p className="mb-1 font-medium text-ink">Suggestions</p>
+                      <BulletList items={resume.ai_feedback.suggestions} />
                     </div>
                   </div>
                 )}
                 {resume.ai_feedback_status === 'not_configured' && (
-                  <p className="text-sm text-slate-500">
-                    AI feedback isn&apos;t configured — set <code>ANTHROPIC_API_KEY</code> on the
+                  <p className="text-sm text-muted">
+                    AI feedback isn&apos;t configured. Set{' '}
+                    <code className="font-mono text-xs text-ink">ANTHROPIC_API_KEY</code> on the
                     backend to enable it.
                   </p>
                 )}
                 {resume.ai_feedback_status === 'error' && (
-                  <p className="text-sm text-slate-500">
-                    AI feedback was temporarily unavailable for this upload.
-                  </p>
+                  <p className="text-sm text-muted">AI feedback was temporarily unavailable for this upload.</p>
                 )}
-              </div>
+              </Section>
 
-              <div className="border-t border-slate-800 pt-4">
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Tailor For A Job
-                </h4>
-                <div className="flex gap-2">
-                  <textarea
-                    placeholder="Paste a job description to tailor this resume toward…"
-                    rows={2}
-                    value={tailorJD}
-                    onChange={(e) => setTailorJD(e.target.value)}
-                    className="flex-1 rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
-                  />
-                  <button
-                    onClick={() => tailorJD.trim() && tailorMutation.mutate(tailorJD.trim())}
-                    disabled={!tailorJD.trim() || tailorMutation.isPending}
-                    className="self-start rounded-md bg-emerald-500 px-3 py-2 text-sm font-medium text-white transition hover:bg-emerald-400 disabled:opacity-50"
-                  >
-                    Tailor
-                  </button>
-                </div>
+              <div className="border-t border-line pt-5">
+                <Section title="Tailor for a job">
+                  <div className="flex flex-col gap-2 sm:flex-row">
+                    <textarea
+                      placeholder="Paste a job description to tailor this resume toward"
+                      rows={2}
+                      value={tailorJD}
+                      onChange={(e) => setTailorJD(e.target.value)}
+                      aria-label="Job description to tailor toward"
+                      className="input flex-1"
+                    />
+                    <button
+                      onClick={() => tailorJD.trim() && tailorMutation.mutate(tailorJD.trim())}
+                      disabled={!tailorJD.trim() || tailorMutation.isPending}
+                      className="btn btn-secondary self-start"
+                    >
+                      Tailor
+                    </button>
+                  </div>
+                </Section>
 
                 {tailorMutation.isPending && (
                   <div className="mt-3">
@@ -202,43 +188,28 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
                 )}
 
                 {tailorMutation.data && (
-                  <div className="mt-3 space-y-2 rounded-lg bg-slate-950/50 p-3 text-sm">
+                  <div className="well mt-4 space-y-4 p-4 text-sm">
                     {tailorMutation.data.status === 'ok' && tailorMutation.data.suggestions ? (
                       <>
                         <div>
-                          <p className="font-medium text-emerald-400">Rewritten Summary</p>
-                          <p className="text-slate-300">
-                            {tailorMutation.data.suggestions.summary_rewrite}
-                          </p>
+                          <p className="mb-1 font-medium text-ink">Rewritten summary</p>
+                          <p className="text-ink-soft">{tailorMutation.data.suggestions.summary_rewrite}</p>
                         </div>
                         <div>
-                          <p className="font-medium text-sky-400">Bullets To Emphasize</p>
-                          <ul className="ml-4 list-disc text-slate-400">
-                            {tailorMutation.data.suggestions.bullets_to_emphasize.map((b) => (
-                              <li key={b}>{b}</li>
-                            ))}
-                          </ul>
+                          <p className="mb-1 font-medium text-ink">Bullets to emphasize</p>
+                          <BulletList items={tailorMutation.data.suggestions.bullets_to_emphasize} />
                         </div>
                         <div>
-                          <p className="font-medium text-amber-400">Keywords To Add</p>
-                          <div className="mt-1 flex flex-wrap gap-1.5">
-                            {tailorMutation.data.suggestions.keywords_to_add.map((k) => (
-                              <span
-                                key={k}
-                                className="rounded-full bg-amber-500/10 px-2 py-0.5 text-xs text-amber-400"
-                              >
-                                {k}
-                              </span>
-                            ))}
-                          </div>
+                          <p className="mb-1.5 font-medium text-ink">Keywords to add</p>
+                          <KeywordList keywords={tailorMutation.data.suggestions.keywords_to_add} tone="neutral" />
                         </div>
-                        <p className="text-slate-400">{tailorMutation.data.suggestions.overall_advice}</p>
+                        <p className="text-ink-soft">{tailorMutation.data.suggestions.overall_advice}</p>
                       </>
                     ) : (
-                      <p className="text-slate-500">
+                      <p className="text-muted">
                         {tailorMutation.data.status === 'not_configured'
-                          ? "AI tailoring isn't configured — set ANTHROPIC_API_KEY on the backend to enable it."
-                          : 'Tailoring was temporarily unavailable — try again.'}
+                          ? "AI tailoring isn't configured. Set ANTHROPIC_API_KEY on the backend to enable it."
+                          : 'Tailoring was temporarily unavailable. Try again.'}
                       </p>
                     )}
                   </div>

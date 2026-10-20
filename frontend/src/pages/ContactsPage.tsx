@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { useMemo, useState } from 'react'
 import {
   addInteraction,
@@ -12,7 +12,9 @@ import {
 import { AppHeader } from '../components/AppHeader'
 import { ContactCard } from '../components/ContactCard'
 import { ContactFormModal } from '../components/ContactFormModal'
+import { EmptyState } from '../components/EmptyState'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { PageHeader } from '../components/PageHeader'
 import type { Contact, ContactInput } from '../types/contact'
 
 export function ContactsPage() {
@@ -78,54 +80,63 @@ export function ContactsPage() {
     }
   }
 
-  return (
-    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
-      <AppHeader active="contacts" subtitle="Networking CRM" />
+  const openCreate = () => setModalState({ mode: 'create' })
 
-      <main className="mx-auto max-w-4xl px-6 py-6">
-        <motion.div
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          className="mb-6 flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-slate-800 bg-slate-900/70 p-5"
-        >
-          <div className="flex flex-wrap items-center gap-4">
+  return (
+    <div className="min-h-screen bg-canvas">
+      <AppHeader active="contacts" />
+
+      <main className="page max-w-4xl">
+        <PageHeader
+          title="Contacts"
+          description="Recruiters, referrals and alumni, with every conversation and follow-up in one place."
+          actions={
+            <button onClick={openCreate} className="btn btn-primary">
+              <span aria-hidden="true">+</span> Add contact
+            </button>
+          }
+        />
+
+        {contacts && contacts.length > 0 && (
+          <div className="card mb-6 flex flex-wrap items-center gap-x-8 gap-y-4 px-5 py-4">
             <div>
-              <p className="text-2xl font-semibold text-white">{stats.total}</p>
-              <p className="text-xs text-slate-500">Total contacts</p>
+              <p className="text-2xl font-semibold tracking-tight tabular-nums text-ink">{stats.total}</p>
+              <p className="text-xs text-muted">Contacts</p>
             </div>
             <div>
-              <p className={`text-2xl font-semibold ${stats.overdue > 0 ? 'text-red-400' : 'text-white'}`}>
+              <p
+                className={`text-2xl font-semibold tracking-tight tabular-nums ${
+                  stats.overdue > 0 ? 'text-warning' : 'text-ink'
+                }`}
+              >
                 {stats.overdue}
               </p>
-              <p className="text-xs text-slate-500">Overdue follow-ups</p>
+              <p className="text-xs text-muted">Overdue follow-ups</p>
             </div>
-            <div className="flex flex-wrap gap-1.5">
+            <div className="flex flex-wrap gap-1.5 sm:ml-auto">
               {stats.byType.map(([type, count]) => (
-                <span
-                  key={type}
-                  className="rounded-full bg-slate-800 px-2.5 py-1 text-xs text-slate-300"
-                >
-                  {type}: {count}
+                <span key={type} className="chip chip-neutral">
+                  {type}
+                  <span className="tabular-nums text-muted">{count}</span>
                 </span>
               ))}
             </div>
           </div>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setModalState({ mode: 'create' })}
-            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
-          >
-            + Add Contact
-          </motion.button>
-        </motion.div>
+        )}
 
         {isLoading && <LoadingSpinner label="Loading contacts…" />}
         {contacts && contacts.length === 0 && (
-          <p className="text-slate-500">No contacts yet — add your first one above.</p>
+          <EmptyState
+            title="No contacts yet"
+            description="Add a recruiter or referral to start tracking conversations and follow-ups."
+            action={
+              <button onClick={openCreate} className="btn btn-primary">
+                Add your first contact
+              </button>
+            }
+          />
         )}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <AnimatePresence mode="popLayout">
             {contacts?.map((contact) => (
               <ContactCard

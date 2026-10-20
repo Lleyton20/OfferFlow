@@ -4,16 +4,18 @@ import { useMemo, useState } from 'react'
 import { getApplications } from '../api/applications'
 import { getResumes } from '../api/resumes'
 import { AppHeader } from '../components/AppHeader'
+import { EmptyState } from '../components/EmptyState'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { PageHeader } from '../components/PageHeader'
+import { STATUS_COLORS, STATUS_COLOR_FALLBACK } from '../lib/statusColors'
 import type { Application } from '../types/application'
 
 type Filter = 'all' | 'active' | 'offer' | 'rejected'
 
 const CLOSED = new Set(['Offer', 'Rejected'])
 
-const STATUS_DOT: Record<string, string> = {
-  Offer: 'bg-emerald-400',
-  Rejected: 'bg-red-400',
+function statusColor(status: string): string {
+  return STATUS_COLORS[status] ?? STATUS_COLOR_FALLBACK
 }
 
 function matchesFilter(app: Application, filter: Filter): boolean {
@@ -29,27 +31,42 @@ function HistoryRow({ application, resumeFilename }: { application: Application;
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 10 }}
+      initial={{ opacity: 0, y: 6 }}
       animate={{ opacity: 1, y: 0 }}
       exit={{ opacity: 0 }}
-      className="rounded-xl border border-slate-800 bg-slate-900/80 p-4"
+      className="card"
     >
-      <button onClick={() => setExpanded((e) => !e)} className="flex w-full items-start justify-between gap-4 text-left">
+      <button
+        onClick={() => setExpanded((e) => !e)}
+        aria-expanded={expanded}
+        className="flex w-full items-center justify-between gap-4 rounded-xl p-4 text-left transition-colors hover:bg-canvas"
+      >
         <div className="min-w-0">
           <div className="flex items-center gap-2">
             <span
-              className={`h-2 w-2 flex-shrink-0 rounded-full ${STATUS_DOT[application.status] ?? 'bg-teal-400'}`}
+              className="h-2 w-2 flex-shrink-0 rounded-full"
+              style={{ backgroundColor: statusColor(application.status) }}
+              aria-hidden="true"
             />
-            <p className="truncate font-medium text-white">
-              {application.company} — {application.role}
+            <p className="truncate font-medium text-ink">
+              {application.company}
+              <span className="font-normal text-muted"> · {application.role}</span>
             </p>
           </div>
-          <p className="mt-1 text-xs text-slate-500">
+          <p className="mt-1 pl-4 text-xs text-muted">
             Applied {application.date_applied}
-            {resumeFilename && <span className="text-sky-400"> · 📄 {resumeFilename}</span>}
+            {resumeFilename && <span> · {resumeFilename}</span>}
           </p>
         </div>
-        <span className="flex-shrink-0 rounded-full bg-slate-800 px-2.5 py-1 text-xs font-medium text-slate-300">
+        <span
+          className={`chip flex-shrink-0 ${
+            application.status === 'Offer'
+              ? 'chip-brand'
+              : application.status === 'Rejected'
+                ? 'chip-danger'
+                : 'chip-neutral'
+          }`}
+        >
           {application.status}
         </span>
       </button>
@@ -60,37 +77,39 @@ function HistoryRow({ application, resumeFilename }: { application: Application;
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="mt-4 space-y-4 border-t border-slate-800 pt-4">
+            <div className="space-y-6 border-t border-line px-4 py-5">
               {application.job_description && (
                 <div>
-                  <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Job Description
+                  <h4 className="eyebrow mb-1.5">
+                    Job description
                   </h4>
-                  <p className="whitespace-pre-line text-sm text-slate-400">
+                  <p className="whitespace-pre-line text-sm text-ink-soft">
                     {application.job_description}
                   </p>
                 </div>
               )}
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                  Status Timeline
+                <h4 className="eyebrow mb-2">
+                  Status timeline
                 </h4>
                 <ol className="space-y-2">
                   {application.status_history.map((event, i) => (
                     <li key={event.id} className="flex items-center gap-3 text-sm">
                       <span
-                        className={`h-2 w-2 rounded-full ${STATUS_DOT[event.status] ?? 'bg-teal-400'}`}
+                        className="h-2 w-2 rounded-full"
+                        style={{ backgroundColor: statusColor(event.status) }}
+                        aria-hidden="true"
                       />
-                      <span className="text-slate-300">{event.status}</span>
-                      <span className="text-xs text-slate-600">
+                      <span className="font-medium text-ink">{event.status}</span>
+                      <span className="text-xs text-muted">
                         {new Date(event.created_at).toLocaleDateString()}
                       </span>
                       {i === application.status_history.length - 1 && (
-                        <span className="text-xs text-emerald-400">current</span>
+                        <span className="chip chip-brand">Current</span>
                       )}
                     </li>
                   ))}
@@ -99,10 +118,10 @@ function HistoryRow({ application, resumeFilename }: { application: Application;
 
               {application.notes && (
                 <div>
-                  <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                  <h4 className="eyebrow mb-1.5">
                     Notes
                   </h4>
-                  <p className="text-sm text-slate-400">{application.notes}</p>
+                  <p className="text-sm text-ink-soft">{application.notes}</p>
                 </div>
               )}
             </div>
@@ -138,42 +157,51 @@ export function HistoryPage() {
     }
   }, [applications])
 
-  const TABS: { key: Filter; label: string }[] = [
-    { key: 'all', label: `All (${counts.all})` },
-    { key: 'active', label: `Active (${counts.active})` },
-    { key: 'offer', label: `Offers (${counts.offer})` },
-    { key: 'rejected', label: `Rejected (${counts.rejected})` },
+  const TABS: { key: Filter; label: string; count: number }[] = [
+    { key: 'all', label: 'All', count: counts.all },
+    { key: 'active', label: 'Active', count: counts.active },
+    { key: 'offer', label: 'Offers', count: counts.offer },
+    { key: 'rejected', label: 'Rejected', count: counts.rejected },
   ]
 
   return (
-    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
-      <AppHeader active="history" subtitle="Application history" />
+    <div className="min-h-screen bg-canvas">
+      <AppHeader active="history" />
 
-      <main className="mx-auto max-w-4xl px-6 py-6">
-        <div className="mb-6 flex flex-wrap gap-2">
+      <main className="page max-w-4xl">
+        <PageHeader
+          title="History"
+          description="Every application you've tracked, with its full status timeline."
+        />
+
+        <div className="mb-6 inline-flex flex-wrap gap-1 rounded-lg bg-subtle p-1" role="tablist" aria-label="Filter applications">
           {TABS.map((tab) => (
-            <motion.button
+            <button
               key={tab.key}
-              whileHover={{ scale: 1.04 }}
-              whileTap={{ scale: 0.96 }}
+              role="tab"
+              aria-selected={filter === tab.key}
               onClick={() => setFilter(tab.key)}
-              className={`rounded-full px-3.5 py-1.5 text-sm font-medium transition ${
-                filter === tab.key
-                  ? 'bg-emerald-500 text-white shadow-md shadow-emerald-500/25'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200'
+              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === tab.key ? 'bg-surface text-ink shadow-xs' : 'text-muted hover:text-ink'
               }`}
             >
               {tab.label}
-            </motion.button>
+              <span className="ml-1.5 tabular-nums text-faint">{tab.count}</span>
+            </button>
           ))}
         </div>
 
         {isLoading && <LoadingSpinner label="Loading applications…" />}
         {sorted.length === 0 && !isLoading && (
-          <p className="text-slate-500">No applications match this filter.</p>
+          <EmptyState
+            title={counts.all === 0 ? 'No applications yet' : 'Nothing matches this filter'}
+            description={
+              counts.all === 0 ? 'Applications you add on the dashboard will appear here.' : undefined
+            }
+          />
         )}
 
-        <div className="space-y-3">
+        <div className="space-y-2">
           <AnimatePresence mode="popLayout">
             {sorted.map((application) => (
               <HistoryRow

@@ -34,27 +34,28 @@ export function InterviewSessionCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-black/20"
+      exit={{ opacity: 0 }}
+      className="card p-5"
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-medium text-white">{session.title}</p>
-          <p className="text-sm text-slate-400">
+        <div className="min-w-0">
+          <p className="font-medium text-ink">{session.title}</p>
+          <p className="mt-0.5 text-sm text-muted">
             {session.interview_type}
             {linkedApplication && (
-              <span className="text-slate-500"> · {linkedApplication.company}</span>
+              <span> · {linkedApplication.company}</span>
             )}
-            {session.scheduled_date && <span className="text-slate-500"> · {session.scheduled_date}</span>}
+            {session.scheduled_date && <span> · {session.scheduled_date}</span>}
           </p>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex shrink-0 items-center gap-3 text-xs font-medium">
           <select
             value={session.status}
             onChange={(e) => onStatusChange(session, e.target.value)}
-            className="rounded-md border border-slate-700 bg-slate-950 px-2 py-1 text-xs text-slate-200 outline-none focus:border-emerald-500"
+            aria-label="Interview status"
+            className="input input-sm w-auto py-1"
           >
             {INTERVIEW_STATUSES.map((s) => (
               <option key={s} value={s}>
@@ -64,13 +65,13 @@ export function InterviewSessionCard({
           </select>
           <button
             onClick={() => onEdit(session)}
-            className="text-xs text-emerald-400 transition hover:text-emerald-300"
+            className="link-muted"
           >
             Edit
           </button>
           <button
             onClick={() => onDelete(session)}
-            className="text-xs text-red-400 transition hover:text-red-300"
+            className="link-danger"
           >
             Delete
           </button>
@@ -79,9 +80,10 @@ export function InterviewSessionCard({
 
       <button
         onClick={() => setExpanded((e) => !e)}
-        className="mt-3 text-xs font-medium text-emerald-400 transition hover:text-emerald-300"
+        aria-expanded={expanded}
+        className="link mt-4 text-xs"
       >
-        {expanded ? 'Hide details' : 'Show prep, mock questions & performance'}
+        {expanded ? 'Hide details' : 'View prep, mock questions and performance'}
       </button>
 
       <AnimatePresence initial={false}>
@@ -90,28 +92,28 @@ export function InterviewSessionCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="mt-4 space-y-4 border-t border-slate-800 pt-4">
+            <div className="mt-4 space-y-6 border-t border-line pt-5">
               {session.prep_notes && (
                 <div>
-                  <h4 className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Study Plan
+                  <h4 className="eyebrow mb-1.5">
+                    Study plan
                   </h4>
-                  <p className="whitespace-pre-line text-sm text-slate-400">{session.prep_notes}</p>
+                  <p className="whitespace-pre-line text-sm text-ink-soft">{session.prep_notes}</p>
                 </div>
               )}
 
               <div>
                 <div className="mb-2 flex items-center justify-between">
-                  <h4 className="text-xs font-semibold uppercase tracking-wide text-slate-500">
-                    Mock Questions
+                  <h4 className="eyebrow">
+                    Mock questions
                   </h4>
                   <button
                     onClick={() => onGenerateQuestions(session)}
                     disabled={isGenerating}
-                    className="text-xs font-medium text-emerald-400 transition hover:text-emerald-300 disabled:opacity-50"
+                    className="btn btn-secondary btn-sm"
                   >
                     {session.mock_questions.length > 0 ? 'Regenerate' : 'Generate with AI'}
                   </button>
@@ -120,32 +122,35 @@ export function InterviewSessionCard({
                 {!isGenerating && session.mock_questions.length > 0 && (
                   <ul className="space-y-2">
                     {session.mock_questions.map((q) => (
-                      <li key={q.question} className="rounded-lg bg-slate-950/50 p-2.5 text-sm">
-                        <p className="text-slate-200">{q.question}</p>
-                        <p className="mt-1 text-xs text-slate-500">💡 {q.tip}</p>
+                      <li key={q.question} className="well p-3 text-sm">
+                        <p className="font-medium text-ink">{q.question}</p>
+                        <p className="mt-1 text-xs text-muted">
+                          <span className="font-medium text-ink-soft">Tip:</span> {q.tip}
+                        </p>
                       </li>
                     ))}
                   </ul>
                 )}
                 {!isGenerating && session.mock_questions.length === 0 && (
-                  <p className="text-sm text-slate-500">
+                  <p className="text-sm text-muted">
                     {session.ai_feedback_status === 'not_configured'
-                      ? "AI question generation isn't configured — set ANTHROPIC_API_KEY on the backend to enable it."
-                      : 'No questions yet — generate a set to practice with.'}
+                      ? "AI question generation isn't configured. Set ANTHROPIC_API_KEY on the backend to enable it."
+                      : 'No questions yet. Generate a set to practice with.'}
                   </p>
                 )}
               </div>
 
               <div>
-                <h4 className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+                <h4 className="eyebrow mb-2">
                   Performance
                 </h4>
                 <div className="flex items-center gap-3">
                   <StarRating value={session.performance_rating} onChange={(r) => onRate(session, r)} />
-                  <span className="text-xs text-slate-500">How do you think it went?</span>
+                  <span className="text-xs text-muted">How do you think it went?</span>
                 </div>
                 <textarea
-                  placeholder="Reflection notes — what went well, what to improve next time…"
+                  placeholder="What went well, and what to improve next time"
+                  aria-label="Reflection notes"
                   rows={2}
                   value={notesDraft}
                   onChange={(e) => setNotesDraft(e.target.value)}
@@ -154,7 +159,7 @@ export function InterviewSessionCard({
                       onNotesChange(session, notesDraft)
                     }
                   }}
-                  className="mt-2 w-full rounded-md border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+                  className="input mt-3"
                 />
               </div>
             </div>

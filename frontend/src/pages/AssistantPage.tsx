@@ -4,6 +4,7 @@ import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { clearChatMessages, getChatMessages, sendChatMessage } from '../api/assistant'
 import { AppHeader } from '../components/AppHeader'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { PageHeader } from '../components/PageHeader'
 
 const SUGGESTIONS = [
   'What should I follow up on this week?',
@@ -43,41 +44,42 @@ export function AssistantPage() {
   }
 
   return (
-    <div className="aurora-bg aurora-bg-subtle flex min-h-screen flex-col bg-slate-950">
-      <AppHeader
-        active="assistant"
-        subtitle="Career assistant"
-        actions={
-          messages && messages.length > 0 ? (
-            <button
-              onClick={() => clearMutation.mutate()}
-              className="text-sm text-slate-500 transition hover:text-slate-300"
-            >
-              Clear chat
-            </button>
-          ) : undefined
-        }
-      />
+    <div className="flex h-screen flex-col bg-canvas">
+      <AppHeader active="assistant" />
 
-      <main className="mx-auto flex w-full max-w-3xl flex-1 flex-col px-6 py-6">
-        <div ref={scrollRef} className="flex-1 space-y-4 overflow-y-auto">
+      <main className="mx-auto flex min-h-0 w-full max-w-3xl flex-1 flex-col px-4 pt-8 pb-6 sm:px-6">
+        <PageHeader
+          title="Career assistant"
+          description="Ask questions about your search. Answers draw on your own applications, resumes and contacts."
+          actions={
+            messages && messages.length > 0 ? (
+              <button onClick={() => clearMutation.mutate()} className="btn btn-secondary btn-sm">
+                Clear conversation
+              </button>
+            ) : undefined
+          }
+        />
+
+        <div
+          ref={scrollRef}
+          className="card min-h-0 flex-1 space-y-4 overflow-y-auto p-4 sm:p-6"
+          aria-live="polite"
+        >
           {isLoading && <LoadingSpinner label="Loading conversation…" />}
 
           {!isLoading && (!messages || messages.length === 0) && (
-            <div className="flex h-full flex-col items-center justify-center gap-4 text-center">
-              <p className="text-lg font-medium text-white">
-                Ask me anything about your job search
+            <div className="flex h-full flex-col items-center justify-center gap-3 py-10 text-center">
+              <p className="text-base font-semibold text-ink">What would you like to know?</p>
+              <p className="max-w-sm text-sm text-muted">
+                I can see your applications, resumes, contacts and interview prep. Specific
+                questions get the most useful answers.
               </p>
-              <p className="max-w-sm text-sm text-slate-500">
-                I can see your applications, resumes, contacts, and interview prep —
-                ask something specific.
-              </p>
-              <div className="flex flex-wrap justify-center gap-2">
+              <div className="mt-3 flex flex-wrap justify-center gap-2">
                 {SUGGESTIONS.map((s) => (
                   <button
                     key={s}
                     onClick={() => sendMutation.mutate(s)}
-                    className="rounded-full border border-slate-700 bg-slate-900/60 px-3 py-1.5 text-xs text-slate-300 transition hover:border-emerald-500/50 hover:text-white"
+                    className="rounded-full border border-line bg-surface px-3 py-1.5 text-xs font-medium text-ink-soft transition-colors hover:border-brand-300 hover:bg-brand-50 hover:text-brand-800"
                   >
                     {s}
                   </button>
@@ -90,15 +92,15 @@ export function AssistantPage() {
             {messages?.map((message) => (
               <motion.div
                 key={message.id}
-                initial={{ opacity: 0, y: 8 }}
+                initial={{ opacity: 0, y: 6 }}
                 animate={{ opacity: 1, y: 0 }}
                 className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 <div
-                  className={`max-w-[80%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm ${
+                  className={`max-w-[85%] whitespace-pre-line rounded-2xl px-4 py-2.5 text-sm leading-relaxed ${
                     message.role === 'user'
-                      ? 'bg-emerald-500 text-white'
-                      : 'border border-slate-800 bg-slate-900/80 text-slate-200'
+                      ? 'rounded-br-md bg-brand-600 text-white'
+                      : 'rounded-bl-md bg-subtle text-ink-soft'
                   }`}
                 >
                   {message.content}
@@ -109,29 +111,28 @@ export function AssistantPage() {
 
           {sendMutation.isPending && (
             <div className="flex justify-start">
-              <div className="rounded-2xl border border-slate-800 bg-slate-900/80 px-4 py-2.5">
+              <div className="rounded-2xl rounded-bl-md bg-subtle px-4 py-3">
                 <LoadingSpinner />
               </div>
             </div>
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="mt-4 flex gap-2">
+        <form onSubmit={handleSubmit} className="mt-3 flex gap-2">
           <input
             value={draft}
             onChange={(e) => setDraft(e.target.value)}
-            placeholder="Ask about your search…"
-            className="flex-1 rounded-lg border border-slate-700 bg-slate-900/60 px-4 py-2.5 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
+            placeholder="Ask about your search"
+            aria-label="Message"
+            className="input py-2.5"
           />
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
+          <button
             type="submit"
             disabled={sendMutation.isPending || !draft.trim()}
-            className="rounded-lg bg-emerald-500 px-5 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-50"
+            className="btn btn-primary btn-lg"
           >
             Send
-          </motion.button>
+          </button>
         </form>
       </main>
     </div>

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { useState } from 'react'
 import { getApplications } from '../api/applications'
 import {
@@ -10,9 +10,11 @@ import {
   updateInterviewSession,
 } from '../api/interviews'
 import { AppHeader } from '../components/AppHeader'
+import { EmptyState } from '../components/EmptyState'
 import { InterviewFormModal } from '../components/InterviewFormModal'
 import { InterviewSessionCard } from '../components/InterviewSessionCard'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { PageHeader } from '../components/PageHeader'
 import { QUESTION_BANK, type BankQuestion } from '../lib/questionBank'
 import type { InterviewSession, InterviewSessionInput, InterviewSessionPatch } from '../types/interview'
 
@@ -28,31 +30,35 @@ function QuestionBank() {
   const filtered = QUESTION_BANK.filter((q) => category === 'All' || q.category === category)
 
   return (
-    <div className="rounded-2xl border border-slate-800 bg-slate-900/70 p-5">
-      <h2 className="text-sm font-semibold text-white">Question Bank</h2>
-      <p className="mb-3 mt-0.5 text-xs text-slate-500">
-        Common questions to practice, with a tip on what a strong answer covers.
+    <div className="card self-start p-5">
+      <h2 className="text-base font-semibold text-ink">Question bank</h2>
+      <p className="mt-1 mb-4 text-sm text-muted">
+        Common questions, each with a note on what a strong answer covers.
       </p>
-      <div className="mb-4 flex flex-wrap gap-1.5">
+      <div className="mb-4 flex flex-wrap gap-1.5" role="tablist" aria-label="Question category">
         {(['All', ...CATEGORIES] as const).map((c) => (
           <button
             key={c}
+            role="tab"
+            aria-selected={category === c}
             onClick={() => setCategory(c)}
-            className={`rounded-full px-3 py-1 text-xs font-medium transition ${
+            className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
               category === c
-                ? 'bg-emerald-500 text-white'
-                : 'bg-slate-800 text-slate-400 hover:text-slate-200'
+                ? 'bg-ink text-white ring-ink'
+                : 'bg-surface text-muted ring-line hover:text-ink'
             }`}
           >
             {c}
           </button>
         ))}
       </div>
-      <ul className="max-h-96 space-y-2 overflow-y-auto pr-1">
+      <ul className="max-h-[28rem] space-y-2 overflow-y-auto pr-1">
         {filtered.map((q) => (
-          <li key={q.question} className="rounded-lg bg-slate-950/50 p-3 text-sm">
-            <p className="text-slate-200">{q.question}</p>
-            <p className="mt-1 text-xs text-slate-500">💡 {q.tip}</p>
+          <li key={q.question} className="well p-3 text-sm">
+            <p className="font-medium text-ink">{q.question}</p>
+            <p className="mt-1 text-xs text-muted">
+              <span className="font-medium text-ink-soft">Tip:</span> {q.tip}
+            </p>
           </li>
         ))}
       </ul>
@@ -111,37 +117,33 @@ export function InterviewPrepPage() {
   }
 
   return (
-    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
-      <AppHeader
-        active="interviews"
-        subtitle="Interview prep"
-        actions={
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={() => setModalState({ mode: 'create' })}
-            className="rounded-md bg-emerald-500 px-4 py-2 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400"
-          >
-            + New Interview Prep
-          </motion.button>
-        }
-      />
+    <div className="min-h-screen bg-canvas">
+      <AppHeader active="interviews" />
 
-      <main className="mx-auto max-w-5xl px-6 py-6">
-        <div className="grid gap-4 lg:grid-cols-[1fr_1.4fr]">
+      <main className="page">
+        <PageHeader
+          title="Interview prep"
+          description="Plan each interview, practice with AI-generated questions, and reflect afterwards."
+          actions={
+            <button onClick={() => setModalState({ mode: 'create' })} className="btn btn-primary">
+              <span aria-hidden="true">+</span> New interview prep
+            </button>
+          }
+        />
+
+        <div className="grid gap-6 lg:grid-cols-[1fr_1.4fr]">
           <QuestionBank />
 
           <div>
-            <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-              Your Interview Sessions
-            </h2>
+            <h2 className="eyebrow mb-3">Your interview sessions</h2>
             {isLoading && <LoadingSpinner label="Loading interviews…" />}
             {sessions && sessions.length === 0 && (
-              <p className="text-sm text-slate-500">
-                No interview prep sessions yet — add one, optionally linked to an application.
-              </p>
+              <EmptyState
+                title="No interview sessions yet"
+                description="Create one for an upcoming interview, optionally linked to an application."
+              />
             )}
-            <div className="space-y-4">
+            <div className="space-y-3">
               <AnimatePresence mode="popLayout">
                 {sessions?.map((session) => (
                   <InterviewSessionCard

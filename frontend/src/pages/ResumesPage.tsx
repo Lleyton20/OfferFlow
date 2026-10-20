@@ -1,15 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence } from 'motion/react'
 import { useRef, useState, type FormEvent } from 'react'
 import { deleteResume, getResumes, uploadResume } from '../api/resumes'
 import { ApiError } from '../api/client'
 import { AppHeader } from '../components/AppHeader'
+import { EmptyState } from '../components/EmptyState'
+import { FormError } from '../components/FormError'
 import { LoadingSpinner } from '../components/LoadingSpinner'
+import { PageHeader } from '../components/PageHeader'
 import { ResumeCard } from '../components/ResumeCard'
 
 export function ResumesPage() {
   const queryClient = useQueryClient()
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const [fileName, setFileName] = useState<string | null>(null)
   const [jobDescription, setJobDescription] = useState('')
   const [error, setError] = useState<string | null>(null)
 
@@ -24,6 +28,7 @@ export function ResumesPage() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['resumes'] })
       setJobDescription('')
+      setFileName(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
       setError(null)
     },
@@ -47,76 +52,79 @@ export function ResumesPage() {
   }
 
   return (
-    <div className="aurora-bg aurora-bg-subtle min-h-screen bg-slate-950">
-      <AppHeader active="resumes" subtitle="Resume Intelligence" />
+    <div className="min-h-screen bg-canvas">
+      <AppHeader active="resumes" />
 
-      <main className="mx-auto max-w-4xl px-6 py-6">
-        <motion.form
-          initial={{ opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.3 }}
-          onSubmit={handleSubmit}
-          className="mb-8 rounded-2xl border border-slate-800 bg-slate-900/70 p-6"
-        >
-          <h2 className="text-lg font-semibold text-white">Upload a resume</h2>
-          <p className="mt-1 text-sm text-slate-500">
-            PDF or plain text. Paste a job description to get keyword matching against it.
+      <main className="page max-w-4xl">
+        <PageHeader
+          title="Resumes"
+          description="Score every version against ATS checks and get AI feedback on what to improve."
+        />
+
+        <form onSubmit={handleSubmit} className="card mb-10 p-6">
+          <h2 className="text-base font-semibold text-ink">Analyze a resume</h2>
+          <p className="mt-1 text-sm text-muted">
+            PDF or plain text. Add a job description to see which keywords you match.
           </p>
 
-          <div className="mt-4 space-y-3">
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept=".pdf,.txt,application/pdf,text/plain"
-              className="block w-full text-sm text-slate-300 file:mr-4 file:rounded-md file:border-0 file:bg-emerald-500 file:px-4 file:py-2 file:text-sm file:font-medium file:text-white hover:file:bg-emerald-400"
-            />
-            <textarea
-              placeholder="Paste a job description (optional)"
-              rows={3}
-              value={jobDescription}
-              onChange={(e) => setJobDescription(e.target.value)}
-              className="w-full rounded-lg border border-slate-700 bg-slate-950/60 px-3 py-2 text-sm text-white outline-none transition focus:border-emerald-500 focus:ring-2 focus:ring-emerald-500/30"
-            />
+          <div className="mt-5 grid gap-4">
+            <label className="flex cursor-pointer flex-col items-center justify-center rounded-lg border border-dashed border-line-strong bg-canvas px-4 py-6 text-center transition-colors hover:border-brand-400 hover:bg-brand-50/40 focus-within:border-brand-600">
+              <span className="text-sm font-medium text-ink">
+                {fileName ?? 'Choose a file'}
+              </span>
+              <span className="mt-1 text-xs text-muted">
+                {fileName ? 'Click to choose a different file' : 'PDF or .txt'}
+              </span>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".pdf,.txt,application/pdf,text/plain"
+                onChange={(e) => setFileName(e.target.files?.[0]?.name ?? null)}
+                className="sr-only"
+              />
+            </label>
+            <label className="field">
+              <span className="label">
+                Job description <span className="font-normal text-muted">(optional)</span>
+              </span>
+              <textarea
+                placeholder="Paste the posting you're targeting"
+                rows={3}
+                value={jobDescription}
+                onChange={(e) => setJobDescription(e.target.value)}
+                className="input"
+              />
+            </label>
           </div>
 
-          <AnimatePresence>
-            {error && (
-              <motion.p
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="mt-3 text-sm text-red-400"
-              >
-                {error}
-              </motion.p>
-            )}
-          </AnimatePresence>
+          <div className="mt-4">
+            <FormError message={error} />
+          </div>
 
-          <motion.button
-            whileHover={{ scale: 1.02 }}
-            whileTap={{ scale: 0.98 }}
-            type="submit"
-            disabled={uploadMutation.isPending}
-            className="mt-4 rounded-lg bg-emerald-500 px-4 py-2.5 text-sm font-medium text-white shadow-lg shadow-emerald-500/25 transition hover:bg-emerald-400 disabled:opacity-60"
-          >
-            {uploadMutation.isPending ? 'Analyzing…' : 'Analyze Resume'}
-          </motion.button>
-        </motion.form>
+          <div className="mt-4 flex justify-end">
+            <button type="submit" disabled={uploadMutation.isPending} className="btn btn-primary">
+              {uploadMutation.isPending ? 'Analyzing…' : 'Analyze resume'}
+            </button>
+          </div>
+        </form>
 
-        <h2 className="mb-3 text-sm font-semibold uppercase tracking-wide text-slate-500">
-          Your resumes
-        </h2>
+        <h2 className="eyebrow mb-3">Your resumes</h2>
         {isLoading && <LoadingSpinner label="Loading resumes…" />}
         {resumes && resumes.length === 0 && (
-          <p className="text-slate-500">No resumes uploaded yet.</p>
+          <EmptyState
+            title="No resumes yet"
+            description="Upload one above to get an ATS score and feedback."
+          />
         )}
-        <div className="space-y-4">
+        <div className="space-y-3">
           <AnimatePresence mode="popLayout">
             {resumes?.map((resume) => (
               <ResumeCard
                 key={resume.id}
                 resume={resume}
-                onDelete={(r) => deleteMutation.mutate(r.id)}
+                onDelete={(r) => {
+                  if (confirm(`Delete ${r.filename}?`)) deleteMutation.mutate(r.id)
+                }}
               />
             ))}
           </AnimatePresence>

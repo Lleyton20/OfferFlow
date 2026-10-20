@@ -7,11 +7,9 @@ function isOverdue(followUpDate: string | null): boolean {
   return followUpDate < new Date().toISOString().slice(0, 10)
 }
 
-const RELATIONSHIP_COLORS: Record<string, string> = {
-  Recruiter: 'bg-emerald-500/10 text-emerald-400',
-  'Hiring Manager': 'bg-teal-500/10 text-teal-400',
-  Referral: 'bg-amber-500/10 text-amber-400',
-  Alum: 'bg-sky-500/10 text-sky-400',
+const RELATIONSHIP_CHIPS: Record<string, string> = {
+  Recruiter: 'chip-brand',
+  Referral: 'chip-brand',
 }
 
 interface ContactCardProps {
@@ -44,71 +42,59 @@ export function ContactCard({
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 8 }}
       animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, scale: 0.95 }}
-      className="rounded-xl border border-slate-800 bg-slate-900/80 p-5 shadow-lg shadow-black/20"
+      exit={{ opacity: 0 }}
+      className="card p-5"
     >
       <div className="flex items-start justify-between gap-3">
-        <div>
-          <p className="font-medium text-white">{contact.name}</p>
-          <p className="text-sm text-slate-400">
-            {[contact.role, contact.company].filter(Boolean).join(' at ')}
-          </p>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="font-medium text-ink">{contact.name}</p>
+            <span className={`chip ${RELATIONSHIP_CHIPS[contact.relationship_type] ?? 'chip-neutral'}`}>
+              {contact.relationship_type}
+            </span>
+          </div>
+          {(contact.role || contact.company) && (
+            <p className="mt-0.5 text-sm text-muted">
+              {[contact.role, contact.company].filter(Boolean).join(' at ')}
+            </p>
+          )}
         </div>
-        <div className="flex items-center gap-2">
-          <span
-            className={`rounded-full px-2.5 py-1 text-xs font-medium ${
-              RELATIONSHIP_COLORS[contact.relationship_type] ?? 'bg-slate-700/50 text-slate-300'
-            }`}
-          >
-            {contact.relationship_type}
-          </span>
-          <button
-            onClick={() => onEdit(contact)}
-            className="text-xs text-emerald-400 transition hover:text-emerald-300"
-          >
+        <div className="flex shrink-0 items-center gap-3 text-xs font-medium">
+          <button onClick={() => onEdit(contact)} className="link-muted">
             Edit
           </button>
-          <button
-            onClick={() => onDelete(contact)}
-            className="text-xs text-red-400 transition hover:text-red-300"
-          >
+          <button onClick={() => onDelete(contact)} className="link-danger">
             Delete
           </button>
         </div>
       </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-500">
-        {contact.email && (
-          <a href={`mailto:${contact.email}`} className="text-slate-400 hover:text-slate-200">
-            {contact.email}
-          </a>
-        )}
-        {contact.linkedin_url && (
-          <a
-            href={contact.linkedin_url}
-            target="_blank"
-            rel="noreferrer"
-            className="text-slate-400 hover:text-slate-200"
-          >
-            LinkedIn
-          </a>
-        )}
-        {contact.follow_up_date && (
-          <span className={overdue ? 'font-medium text-red-400' : 'text-slate-400'}>
-            {overdue ? 'Follow up overdue: ' : 'Follow up: '}
-            {contact.follow_up_date}
-          </span>
-        )}
-      </div>
+      {(contact.email || contact.linkedin_url || contact.follow_up_date) && (
+        <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1.5 text-xs">
+          {contact.email && (
+            <a href={`mailto:${contact.email}`} className="link-muted">
+              {contact.email}
+            </a>
+          )}
+          {contact.linkedin_url && (
+            <a href={contact.linkedin_url} target="_blank" rel="noreferrer" className="link-muted">
+              LinkedIn ↗
+            </a>
+          )}
+          {contact.follow_up_date && (
+            <span className={overdue ? 'chip chip-warning' : 'text-muted'}>
+              {overdue ? 'Follow-up overdue · ' : 'Follow up '}
+              {contact.follow_up_date}
+            </span>
+          )}
+        </div>
+      )}
 
-      {contact.notes && <p className="mt-2 text-sm text-slate-400">{contact.notes}</p>}
+      {contact.notes && <p className="mt-3 text-sm text-ink-soft">{contact.notes}</p>}
 
-      <button
-        onClick={() => setExpanded((e) => !e)}
-        className="mt-3 text-xs font-medium text-emerald-400 transition hover:text-emerald-300"
-      >
+      <button onClick={() => setExpanded((e) => !e)} aria-expanded={expanded} className="link mt-4 text-xs">
         {expanded
           ? 'Hide conversation history'
           : `Conversation history (${contact.interactions.length})`}
@@ -120,50 +106,51 @@ export function ContactCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.25, ease: 'easeInOut' }}
+            transition={{ duration: 0.22, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
-            <div className="mt-4 space-y-3 border-t border-slate-800 pt-4">
-              <ul className="space-y-2">
-                {contact.interactions.map((interaction) => (
-                  <li
-                    key={interaction.id}
-                    className="flex items-start justify-between gap-2 rounded-lg bg-slate-950/50 p-2.5 text-sm"
-                  >
-                    <div>
-                      <p className="text-xs text-slate-500">{interaction.date}</p>
-                      <p className="text-slate-300">{interaction.note}</p>
-                    </div>
-                    <button
-                      onClick={() => onDeleteInteraction(contact, interaction.id)}
-                      className="text-xs text-red-400 transition hover:text-red-300"
-                    >
-                      Remove
-                    </button>
-                  </li>
-                ))}
-                {contact.interactions.length === 0 && (
-                  <p className="text-sm text-slate-500">No conversations logged yet.</p>
-                )}
-              </ul>
+            <div className="mt-4 space-y-3 border-t border-line pt-4">
+              {contact.interactions.length > 0 ? (
+                <ol className="relative space-y-3 border-l border-line pl-4">
+                  {contact.interactions.map((interaction) => (
+                    <li key={interaction.id} className="group relative flex items-start justify-between gap-3 text-sm">
+                      <span
+                        className="absolute top-1.5 -left-[21px] h-2 w-2 rounded-full border-2 border-surface bg-line-strong"
+                        aria-hidden="true"
+                      />
+                      <div>
+                        <p className="text-xs text-muted">{interaction.date}</p>
+                        <p className="text-ink-soft">{interaction.note}</p>
+                      </div>
+                      <button
+                        onClick={() => onDeleteInteraction(contact, interaction.id)}
+                        className="link-danger text-xs font-medium"
+                      >
+                        Remove
+                      </button>
+                    </li>
+                  ))}
+                </ol>
+              ) : (
+                <p className="text-sm text-muted">No conversations logged yet.</p>
+              )}
 
-              <form onSubmit={handleAddInteraction} className="flex gap-2">
+              <form onSubmit={handleAddInteraction} className="flex flex-col gap-2 sm:flex-row">
                 <input
                   type="date"
                   value={date}
                   onChange={(e) => setDate(e.target.value)}
-                  className="rounded-md border border-slate-700 bg-slate-950/60 px-2 py-1.5 text-sm text-white outline-none focus:border-emerald-500"
+                  aria-label="Conversation date"
+                  className="input sm:w-40"
                 />
                 <input
-                  placeholder="Log a conversation…"
+                  placeholder="Log a conversation"
                   value={note}
                   onChange={(e) => setNote(e.target.value)}
-                  className="flex-1 rounded-md border border-slate-700 bg-slate-950/60 px-3 py-1.5 text-sm text-white outline-none focus:border-emerald-500"
+                  aria-label="Conversation note"
+                  className="input flex-1"
                 />
-                <button
-                  type="submit"
-                  className="rounded-md bg-emerald-500 px-3 py-1.5 text-sm font-medium text-white transition hover:bg-emerald-400"
-                >
+                <button type="submit" className="btn btn-secondary">
                   Add
                 </button>
               </form>
