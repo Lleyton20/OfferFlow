@@ -84,7 +84,7 @@ body {
 
 @layer components {
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-colors duration-150 select-none disabled:cursor-not-allowed disabled:opacity-50;
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-[color,background-color,border-color,box-shadow,transform] duration-150 select-none active:scale-[0.97] disabled:cursor-not-allowed disabled:opacity-50 disabled:active:scale-100;
   }
   .btn-lg {
     @apply px-5 py-2.5;
@@ -114,6 +114,9 @@ body {
 
   .card {
     @apply rounded-xl border border-line bg-surface shadow-card;
+  }
+  .card-interactive {
+    @apply transition-[box-shadow,transform,border-color] duration-200 ease-out hover:-translate-y-px hover:border-line-strong hover:shadow-lift;
   }
   .well {
     @apply rounded-lg border border-line bg-subtle;
@@ -163,6 +166,24 @@ body {
   .page-subtitle {
     @apply mt-1 text-sm text-muted;
   }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 6px;
+  background-color: var(--color-subtle);
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(90deg, transparent, rgb(255 255 255 / 0.7), transparent);
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+@keyframes shimmer {
+  100% { transform: translateX(100%); }
 }
 
 /* Faint dot grid used behind the landing hero — texture without color noise. */

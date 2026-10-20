@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { AnimatePresence } from 'motion/react'
+import { AnimatePresence, motion } from 'motion/react'
 import { useState } from 'react'
 import { getApplications } from '../api/applications'
 import {
@@ -13,8 +13,9 @@ import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { InterviewFormModal } from '../components/InterviewFormModal'
 import { InterviewSessionCard } from '../components/InterviewSessionCard'
-import { LoadingSpinner } from '../components/LoadingSpinner'
 import { PageHeader } from '../components/PageHeader'
+import { ListSkeleton } from '../components/Skeleton'
+import { useToast } from '../components/useToast'
 import { QUESTION_BANK, type BankQuestion } from '../lib/questionBank'
 import type { InterviewSession, InterviewSessionInput, InterviewSessionPatch } from '../types/interview'
 
@@ -42,24 +43,34 @@ function QuestionBank() {
             role="tab"
             aria-selected={category === c}
             onClick={() => setCategory(c)}
-            className={`rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
-              category === c
-                ? 'bg-ink text-white ring-ink'
-                : 'bg-surface text-muted ring-line hover:text-ink'
+            className={`relative rounded-full px-3 py-1 text-xs font-medium ring-1 ring-inset transition-colors ${
+              category === c ? 'text-white ring-transparent' : 'bg-surface text-muted ring-line hover:text-ink'
             }`}
           >
-            {c}
+            {category === c && (
+              <motion.span
+                layoutId="question-category"
+                transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                className="absolute inset-0 rounded-full bg-ink"
+              />
+            )}
+            <span className="relative">{c}</span>
           </button>
         ))}
       </div>
       <ul className="max-h-[28rem] space-y-2 overflow-y-auto pr-1">
-        {filtered.map((q) => (
-          <li key={q.question} className="well p-3 text-sm">
+        {filtered.map((q, i) => (
+          <motion.li
+            key={`${category}-${q.question}`}
+            initial={{ opacity: 0, y: 6 }}
+            animate={{ opacity: 1, y: 0, transition: { delay: Math.min(i, 10) * 0.025 } }}
+            className="well p-3 text-sm"
+          >
             <p className="font-medium text-ink">{q.question}</p>
             <p className="mt-1 text-xs text-muted">
               <span className="font-medium text-ink-soft">Tip:</span> {q.tip}
             </p>
-          </li>
+          </motion.li>
         ))}
       </ul>
     </div>
@@ -68,6 +79,7 @@ function QuestionBank() {
 
 export function InterviewPrepPage() {
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [modalState, setModalState] = useState<
     { mode: 'create' } | { mode: 'edit'; session: InterviewSession } | null
   >(null)
@@ -87,6 +99,7 @@ export function InterviewPrepPage() {
     onSuccess: () => {
       invalidate()
       setModalState(null)
+      toast.show('Interview prep created')
     },
   })
 
@@ -136,7 +149,7 @@ export function InterviewPrepPage() {
 
           <div>
             <h2 className="eyebrow mb-3">Your interview sessions</h2>
-            {isLoading && <LoadingSpinner label="Loading interviews…" />}
+            {isLoading && <ListSkeleton rows={2} />}
             {sessions && sessions.length === 0 && (
               <EmptyState
                 title="No interview sessions yet"
@@ -145,9 +158,10 @@ export function InterviewPrepPage() {
             )}
             <div className="space-y-3">
               <AnimatePresence mode="popLayout">
-                {sessions?.map((session) => (
+                {sessions?.map((session, index) => (
                   <InterviewSessionCard
                     key={session.id}
+                    index={index}
                     session={session}
                     linkedApplication={
                       session.application_id ? applicationById.get(session.application_id) : undefined

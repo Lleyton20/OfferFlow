@@ -6,12 +6,14 @@ import { ApiError } from '../api/client'
 import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { FormError } from '../components/FormError'
-import { LoadingSpinner } from '../components/LoadingSpinner'
 import { PageHeader } from '../components/PageHeader'
 import { ResumeCard } from '../components/ResumeCard'
+import { ListSkeleton } from '../components/Skeleton'
+import { useToast } from '../components/useToast'
 
 export function ResumesPage() {
   const queryClient = useQueryClient()
+  const toast = useToast()
   const fileInputRef = useRef<HTMLInputElement>(null)
   const [fileName, setFileName] = useState<string | null>(null)
   const [jobDescription, setJobDescription] = useState('')
@@ -25,8 +27,9 @@ export function ResumesPage() {
   const uploadMutation = useMutation({
     mutationFn: ({ file, jobDescription }: { file: File; jobDescription: string }) =>
       uploadResume(file, jobDescription),
-    onSuccess: () => {
+    onSuccess: (resume) => {
       queryClient.invalidateQueries({ queryKey: ['resumes'] })
+      toast.show(`Scored ${resume.filename}: ${resume.ats_score}/100`)
       setJobDescription('')
       setFileName(null)
       if (fileInputRef.current) fileInputRef.current.value = ''
@@ -109,7 +112,7 @@ export function ResumesPage() {
         </form>
 
         <h2 className="eyebrow mb-3">Your resumes</h2>
-        {isLoading && <LoadingSpinner label="Loading resumes…" />}
+        {isLoading && <ListSkeleton rows={2} />}
         {resumes && resumes.length === 0 && (
           <EmptyState
             title="No resumes yet"
@@ -118,9 +121,10 @@ export function ResumesPage() {
         )}
         <div className="space-y-3">
           <AnimatePresence mode="popLayout">
-            {resumes?.map((resume) => (
+            {resumes?.map((resume, index) => (
               <ResumeCard
                 key={resume.id}
+                index={index}
                 resume={resume}
                 onDelete={(r) => {
                   if (confirm(`Delete ${r.filename}?`)) deleteMutation.mutate(r.id)

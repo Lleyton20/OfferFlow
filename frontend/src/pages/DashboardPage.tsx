@@ -14,9 +14,10 @@ import { ApplicationBoard } from '../components/ApplicationBoard'
 import { ApplicationFormModal } from '../components/ApplicationFormModal'
 import { BirthdayBanner } from '../components/BirthdayBanner'
 import { EmptyState } from '../components/EmptyState'
-import { LoadingSpinner } from '../components/LoadingSpinner'
 import { OverviewStats } from '../components/OverviewStats'
 import { PageHeader } from '../components/PageHeader'
+import { BoardSkeleton, Skeleton } from '../components/Skeleton'
+import { useToast } from '../components/useToast'
 import { useAuth } from '../context/useAuth'
 import { isBirthdayToday } from '../lib/birthday'
 import type { Application, ApplicationInput } from '../types/application'
@@ -31,6 +32,7 @@ function greeting(): string {
 export function DashboardPage() {
   const { user } = useAuth()
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [modalState, setModalState] = useState<
     { mode: 'create' } | { mode: 'edit'; application: Application } | null
   >(null)
@@ -50,24 +52,31 @@ export function DashboardPage() {
 
   const createMutation = useMutation({
     mutationFn: createApplication,
-    onSuccess: () => {
+    onSuccess: (created) => {
       invalidate()
       setModalState(null)
+      toast.show(`Added ${created.company}`)
     },
+    onError: () => toast.show("Couldn't save the application", 'error'),
   })
 
   const updateMutation = useMutation({
     mutationFn: ({ id, data }: { id: number; data: Partial<ApplicationInput> }) =>
       updateApplication(id, data),
-    onSuccess: () => {
+    onSuccess: (updated, { data }) => {
       invalidate()
       setModalState(null)
+      toast.show(data.status && Object.keys(data).length === 1 ? `Moved ${updated.company} to ${updated.status}` : 'Changes saved')
     },
+    onError: () => toast.show("Couldn't save your changes", 'error'),
   })
 
   const deleteMutation = useMutation({
     mutationFn: deleteApplication,
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate()
+      toast.show('Application deleted')
+    },
   })
 
   function handleDelete(application: Application) {
@@ -116,7 +125,20 @@ export function DashboardPage() {
           />
         )}
 
-        {isLoading && <LoadingSpinner label="Loading applications…" />}
+        {isLoading && (
+          <>
+            <div className="mb-8 grid grid-cols-2 gap-px overflow-hidden rounded-xl border border-line bg-line lg:grid-cols-4">
+              {Array.from({ length: 4 }, (_, i) => (
+                <div key={i} className="space-y-3 bg-surface p-5">
+                  <Skeleton className="h-3 w-24" />
+                  <Skeleton className="h-7 w-12" />
+                  <Skeleton className="h-3 w-20" />
+                </div>
+              ))}
+            </div>
+            <BoardSkeleton />
+          </>
+        )}
         {isError && (
           <div className="rounded-lg border border-danger/20 bg-danger-soft px-4 py-3 text-sm text-danger">
             Couldn&apos;t reach the API: {(error as Error).message}

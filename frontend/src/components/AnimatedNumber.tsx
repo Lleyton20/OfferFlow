@@ -5,10 +5,13 @@ interface AnimatedNumberProps {
   duration?: number
 }
 
-/** Counts up from its previous value to `value` whenever it changes. */
-export function AnimatedNumber({ value, duration = 600 }: AnimatedNumberProps) {
-  const [display, setDisplay] = useState(value)
-  const fromRef = useRef(value)
+const prefersReducedMotion = () =>
+  typeof window !== 'undefined' && window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+
+/** Counts up from zero on first render, then from its previous value whenever `value` changes. */
+export function AnimatedNumber({ value, duration = 700 }: AnimatedNumberProps) {
+  const [display, setDisplay] = useState(() => (prefersReducedMotion() ? value : 0))
+  const fromRef = useRef(prefersReducedMotion() ? value : 0)
   const frameRef = useRef<number | null>(null)
 
   useEffect(() => {
@@ -20,7 +23,7 @@ export function AnimatedNumber({ value, duration = 600 }: AnimatedNumberProps) {
     function tick(now: number) {
       const elapsed = now - start
       const progress = Math.min(1, elapsed / duration)
-      const eased = 1 - (1 - progress) * (1 - progress)
+      const eased = 1 - Math.pow(1 - progress, 3)
       setDisplay(Math.round(from + (to - from) * eased))
       if (progress < 1) {
         frameRef.current = requestAnimationFrame(tick)

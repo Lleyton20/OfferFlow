@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { useState } from 'react'
 
 export interface BarDatum {
@@ -57,10 +58,12 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                 rx={4}
                 className="fill-subtle"
               />
-              <rect
+              <motion.rect
                 x={LABEL_WIDTH}
                 y={y}
-                width={barWidth}
+                initial={{ width: 0 }}
+                animate={{ width: barWidth }}
+                transition={{ duration: 0.7, delay: 0.1 + i * 0.06, ease: [0.2, 0.8, 0.2, 1] }}
                 height={BAR_HEIGHT}
                 rx={4}
                 fill={d.color}
@@ -72,9 +75,12 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                 <title>
                   {d.label}: {d.value}
                 </title>
-              </rect>
+              </motion.rect>
               {labelFits ? (
-                <text
+                <motion.text
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 + i * 0.06 }}
                   x={LABEL_WIDTH + barWidth - 8}
                   y={y + BAR_HEIGHT / 2}
                   textAnchor="end"
@@ -83,9 +89,12 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                   style={{ fontSize: 11, fontWeight: 600 }}
                 >
                   {d.value}
-                </text>
+                </motion.text>
               ) : (
-                <text
+                <motion.text
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 + i * 0.06 }}
                   x={LABEL_WIDTH + barWidth + 8}
                   y={y + BAR_HEIGHT / 2}
                   dominantBaseline="middle"
@@ -93,7 +102,7 @@ export function StatusBarChart({ data }: StatusBarChartProps) {
                   style={{ fontSize: 11, fontWeight: 600 }}
                 >
                   {d.value}
-                </text>
+                </motion.text>
               )}
             </g>
           )

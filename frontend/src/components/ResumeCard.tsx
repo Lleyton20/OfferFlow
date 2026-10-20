@@ -46,9 +46,10 @@ function KeywordList({ keywords, tone }: { keywords: string[]; tone: 'brand' | '
 interface ResumeCardProps {
   resume: Resume
   onDelete: (resume: Resume) => void
+  index?: number
 }
 
-export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
+export function ResumeCard({ resume, onDelete, index = 0 }: ResumeCardProps) {
   const [expanded, setExpanded] = useState(false)
   const [tailorJD, setTailorJD] = useState('')
   const tailorMutation = useMutation({
@@ -58,10 +59,12 @@ export function ResumeCard({ resume, onDelete }: ResumeCardProps) {
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 8 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      className="card p-5"
+      initial={{ opacity: 0, y: 12 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.4, delay: Math.min(index, 8) * 0.05, ease: [0.2, 0.8, 0.2, 1] } }}
+      exit={{ opacity: 0, scale: 0.98, transition: { duration: 0.15 } }}
+      whileHover={{ y: -2 }}
+      transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+      className="card p-5 transition-shadow duration-200 hover:shadow-lift"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">

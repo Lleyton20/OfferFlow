@@ -1,3 +1,4 @@
+import { motion } from 'motion/react'
 import { useState } from 'react'
 
 export interface TrendPoint {
@@ -51,11 +52,31 @@ export function TrendChart({ data, color, valueSuffix = '', ariaLabel }: TrendCh
           className="text-line"
           strokeWidth={1}
         />
-        <path d={areaPath} fill={color} opacity={0.08} />
-        <path d={path} fill="none" stroke={color} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
+        <motion.path
+          d={areaPath}
+          fill={color}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 0.08 }}
+          transition={{ duration: 0.6, delay: 0.5 }}
+        />
+        <motion.path
+          d={path}
+          fill="none"
+          stroke={color}
+          strokeWidth={2}
+          strokeLinejoin="round"
+          strokeLinecap="round"
+          initial={{ pathLength: 0 }}
+          animate={{ pathLength: 1 }}
+          transition={{ duration: 1, ease: [0.2, 0.8, 0.2, 1] }}
+        />
         {points.map((p, i) => (
           <g key={p.label}>
-            <circle
+            <motion.circle
+              initial={{ scale: 0 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', stiffness: 500, damping: 25, delay: 0.3 + (i / Math.max(1, points.length - 1)) * 0.7 }}
+              style={{ cursor: 'pointer', transformBox: 'fill-box', transformOrigin: 'center' }}
               cx={p.x}
               cy={p.y}
               r={hovered === i ? 6 : 4}
@@ -64,13 +85,12 @@ export function TrendChart({ data, color, valueSuffix = '', ariaLabel }: TrendCh
               strokeWidth={2}
               onPointerEnter={() => setHovered(i)}
               onPointerLeave={() => setHovered(null)}
-              style={{ cursor: 'pointer', transition: 'r 0.1s' }}
             >
               <title>
                 {p.label}: {p.value}
                 {valueSuffix}
               </title>
-            </circle>
+            </motion.circle>
             <text
               x={p.x}
               y={HEIGHT - 8}

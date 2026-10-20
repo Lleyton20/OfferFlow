@@ -13,12 +13,14 @@ import { AppHeader } from '../components/AppHeader'
 import { ContactCard } from '../components/ContactCard'
 import { ContactFormModal } from '../components/ContactFormModal'
 import { EmptyState } from '../components/EmptyState'
-import { LoadingSpinner } from '../components/LoadingSpinner'
 import { PageHeader } from '../components/PageHeader'
+import { ListSkeleton } from '../components/Skeleton'
+import { useToast } from '../components/useToast'
 import type { Contact, ContactInput } from '../types/contact'
 
 export function ContactsPage() {
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [modalState, setModalState] = useState<
     { mode: 'create' } | { mode: 'edit'; contact: Contact } | null
   >(null)
@@ -32,9 +34,10 @@ export function ContactsPage() {
 
   const createMutation = useMutation({
     mutationFn: createContact,
-    onSuccess: () => {
+    onSuccess: (contact) => {
       invalidate()
       setModalState(null)
+      toast.show(`Added ${contact.name}`)
     },
   })
 
@@ -47,12 +50,21 @@ export function ContactsPage() {
     },
   })
 
-  const deleteMutation = useMutation({ mutationFn: deleteContact, onSuccess: invalidate })
+  const deleteMutation = useMutation({
+    mutationFn: deleteContact,
+    onSuccess: () => {
+      invalidate()
+      toast.show('Contact deleted')
+    },
+  })
 
   const addInteractionMutation = useMutation({
     mutationFn: ({ contactId, date, note }: { contactId: number; date: string; note: string }) =>
       addInteraction(contactId, { date, note }),
-    onSuccess: invalidate,
+    onSuccess: () => {
+      invalidate()
+      toast.show('Conversation logged')
+    },
   })
 
   const deleteInteractionMutation = useMutation({
@@ -124,7 +136,7 @@ export function ContactsPage() {
           </div>
         )}
 
-        {isLoading && <LoadingSpinner label="Loading contacts…" />}
+        {isLoading && <ListSkeleton />}
         {contacts && contacts.length === 0 && (
           <EmptyState
             title="No contacts yet"
@@ -138,9 +150,10 @@ export function ContactsPage() {
         )}
         <div className="space-y-3">
           <AnimatePresence mode="popLayout">
-            {contacts?.map((contact) => (
+            {contacts?.map((contact, index) => (
               <ContactCard
                 key={contact.id}
+                index={index}
                 contact={contact}
                 onEdit={(c) => setModalState({ mode: 'edit', contact: c })}
                 onDelete={(c) => {

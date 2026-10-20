@@ -5,8 +5,8 @@ import { getApplications } from '../api/applications'
 import { getResumes } from '../api/resumes'
 import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
-import { LoadingSpinner } from '../components/LoadingSpinner'
 import { PageHeader } from '../components/PageHeader'
+import { ListSkeleton } from '../components/Skeleton'
 import { STATUS_COLORS, STATUS_COLOR_FALLBACK } from '../lib/statusColors'
 import type { Application } from '../types/application'
 
@@ -25,16 +25,24 @@ function matchesFilter(app: Application, filter: Filter): boolean {
   return app.status === 'Rejected'
 }
 
-function HistoryRow({ application, resumeFilename }: { application: Application; resumeFilename?: string }) {
+function HistoryRow({
+  application,
+  resumeFilename,
+  index,
+}: {
+  application: Application
+  resumeFilename?: string
+  index: number
+}) {
   const [expanded, setExpanded] = useState(false)
 
   return (
     <motion.div
       layout
-      initial={{ opacity: 0, y: 6 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
-      className="card"
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0, transition: { duration: 0.35, delay: Math.min(index, 10) * 0.035 } }}
+      exit={{ opacity: 0, transition: { duration: 0.12 } }}
+      className="card transition-shadow duration-200 hover:shadow-lift"
     >
       <button
         onClick={() => setExpanded((e) => !e)}
@@ -181,17 +189,26 @@ export function HistoryPage() {
               role="tab"
               aria-selected={filter === tab.key}
               onClick={() => setFilter(tab.key)}
-              className={`rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
-                filter === tab.key ? 'bg-surface text-ink shadow-xs' : 'text-muted hover:text-ink'
+              className={`relative rounded-md px-3 py-1.5 text-sm font-medium transition-colors ${
+                filter === tab.key ? 'text-ink' : 'text-muted hover:text-ink'
               }`}
             >
-              {tab.label}
-              <span className="ml-1.5 tabular-nums text-faint">{tab.count}</span>
+              {filter === tab.key && (
+                <motion.span
+                  layoutId="history-filter"
+                  transition={{ type: 'spring', stiffness: 500, damping: 38 }}
+                  className="absolute inset-0 rounded-md bg-surface shadow-xs"
+                />
+              )}
+              <span className="relative">
+                {tab.label}
+                <span className="ml-1.5 tabular-nums text-faint">{tab.count}</span>
+              </span>
             </button>
           ))}
         </div>
 
-        {isLoading && <LoadingSpinner label="Loading applications…" />}
+        {isLoading && <ListSkeleton />}
         {sorted.length === 0 && !isLoading && (
           <EmptyState
             title={counts.all === 0 ? 'No applications yet' : 'Nothing matches this filter'}
@@ -203,9 +220,10 @@ export function HistoryPage() {
 
         <div className="space-y-2">
           <AnimatePresence mode="popLayout">
-            {sorted.map((application) => (
+            {sorted.map((application, index) => (
               <HistoryRow
                 key={application.id}
+                index={index}
                 application={application}
                 resumeFilename={
                   application.resume_id

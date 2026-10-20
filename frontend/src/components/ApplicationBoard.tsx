@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, LayoutGroup, motion } from 'motion/react'
 import { getResumes } from '../api/resumes'
 import { STATUS_COLORS, STATUS_COLOR_FALLBACK } from '../lib/statusColors'
 import { APPLICATION_STATUSES, type Application } from '../types/application'
@@ -44,10 +44,13 @@ export function ApplicationBoard({
   const resumeById = new Map((resumes ?? []).map((r) => [r.id, r]))
 
   return (
+    <LayoutGroup>
     <div className="-mx-4 flex snap-x gap-3 overflow-x-auto px-4 pb-4 sm:-mx-6 sm:px-6">
-      {[...groups.entries()].map(([status, apps]) => (
-        <section
+      {[...groups.entries()].map(([status, apps], columnIndex) => (
+        <motion.section
           key={status}
+          initial={{ opacity: 0, y: 14 }}
+          animate={{ opacity: 1, y: 0, transition: { duration: 0.45, delay: columnIndex * 0.05, ease: [0.2, 0.8, 0.2, 1] } }}
           aria-label={`${status} (${apps.length})`}
           className="w-72 flex-shrink-0 snap-start rounded-xl bg-subtle/70 p-2"
         >
@@ -70,12 +73,13 @@ export function ApplicationBoard({
                 return (
                   <motion.article
                     key={application.id}
-                    layout
-                    initial={{ opacity: 0, y: 6 }}
+                    layoutId={`application-${application.id}`}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, transition: { duration: 0.12 } }}
-                    transition={{ type: 'spring', stiffness: 500, damping: 40 }}
-                    className="group card p-3.5 transition-shadow hover:shadow-lift"
+                    exit={{ opacity: 0, scale: 0.96, transition: { duration: 0.15 } }}
+                    whileHover={{ y: -2 }}
+                    transition={{ type: 'spring', stiffness: 420, damping: 34 }}
+                    className="group card p-3.5 transition-shadow duration-200 hover:shadow-lift"
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
@@ -132,8 +136,9 @@ export function ApplicationBoard({
               </p>
             )}
           </div>
-        </section>
+        </motion.section>
       ))}
     </div>
+    </LayoutGroup>
   )
 }

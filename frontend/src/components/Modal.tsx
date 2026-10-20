@@ -32,10 +32,10 @@ export function Modal({ title, onClose, children }: ModalProps) {
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
-        initial={{ opacity: 0, y: 16 }}
-        animate={{ opacity: 1, y: 0 }}
-        exit={{ opacity: 0, y: 16 }}
-        transition={{ duration: 0.2, ease: [0.2, 0.8, 0.2, 1] }}
+        initial={{ opacity: 0, y: 24, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12, scale: 0.98, transition: { duration: 0.15 } }}
+        transition={{ type: 'spring', stiffness: 420, damping: 34 }}
         onClick={(e) => e.stopPropagation()}
         className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-2xl bg-surface shadow-overlay sm:rounded-2xl"
       >
