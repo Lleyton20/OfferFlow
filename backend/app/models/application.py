@@ -29,6 +29,9 @@ class Application(Base):
     strengths: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     weaknesses: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     notes: Mapped[str | None] = mapped_column(String, nullable=True)
+    job_url: Mapped[str | None] = mapped_column(String, nullable=True, index=True)
+    location: Mapped[str | None] = mapped_column(String, nullable=True)
+    source: Mapped[str] = mapped_column(String, nullable=False, default="manual")
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)
     updated_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True), default=_utcnow, onupdate=_utcnow

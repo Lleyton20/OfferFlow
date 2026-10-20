@@ -1,6 +1,6 @@
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, Integer, String
+from sqlalchemy import JSON, Boolean, Date, DateTime, Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
 from app.database import Base
@@ -24,4 +24,7 @@ class User(Base):
     reset_token_expires_at: Mapped[datetime | None] = mapped_column(
         DateTime(timezone=True), nullable=True
     )
+    job_keywords: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
+    digest_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    last_digest_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

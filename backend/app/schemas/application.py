@@ -24,6 +24,8 @@ class ApplicationCreate(BaseModel):
     weaknesses: list[str] = []
     notes: str | None = None
     resume_id: int | None = None
+    job_url: str | None = None
+    location: str | None = None
 
 
 class ApplicationUpdate(BaseModel):
@@ -39,6 +41,8 @@ class ApplicationUpdate(BaseModel):
     weaknesses: list[str] | None = None
     notes: str | None = None
     resume_id: int | None = None
+    job_url: str | None = None
+    location: str | None = None
 
 
 class ApplicationRead(BaseModel):
@@ -57,6 +61,9 @@ class ApplicationRead(BaseModel):
     weaknesses: list[str]
     notes: str | None
     resume_id: int | None
+    job_url: str | None
+    location: str | None
+    source: str
     created_at: datetime
     updated_at: datetime
     status_history: list[StatusEventRead]
