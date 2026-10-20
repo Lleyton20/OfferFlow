@@ -83,10 +83,31 @@ export function ApplicationBoard({
                   >
                     <div className="flex items-start justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="truncate text-sm font-semibold text-ink">{application.company}</p>
+                        <p className="truncate text-sm font-semibold text-ink">
+                          {application.job_url ? (
+                            <a
+                              href={application.job_url}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="hover:text-brand-700 hover:underline"
+                              title="Open the job posting"
+                            >
+                              {application.company}
+                            </a>
+                          ) : (
+                            application.company
+                          )}
+                        </p>
                         <p className="truncate text-[13px] text-muted">{application.role}</p>
                       </div>
-                      {application.referral_used && <span className="chip chip-brand">Referral</span>}
+                      <div className="flex shrink-0 flex-col items-end gap-1">
+                        {application.referral_used && <span className="chip chip-brand">Referral</span>}
+                        {application.source !== 'manual' && (
+                          <span className="chip chip-neutral" title={`Captured from ${application.source}`}>
+                            Auto
+                          </span>
+                        )}
+                      </div>
                     </div>
 
                     <div className="mt-2.5 flex items-center gap-1.5 text-xs text-muted">

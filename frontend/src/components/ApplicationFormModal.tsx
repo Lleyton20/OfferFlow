@@ -25,6 +25,8 @@ function toFormState(initial?: Application): ApplicationInput {
     weaknesses: initial?.weaknesses ?? [],
     notes: initial?.notes ?? '',
     resume_id: initial?.resume_id ?? null,
+    job_url: initial?.job_url ?? '',
+    location: initial?.location ?? '',
   }
 }
 
@@ -46,6 +48,8 @@ export function ApplicationFormModal({
       contact_person: form.contact_person || null,
       job_description: form.job_description || null,
       notes: form.notes || null,
+      job_url: form.job_url || null,
+      location: form.location || null,
       strengths: strengthsInput
         .split(',')
         .map((s) => s.trim())
@@ -106,6 +110,27 @@ export function ApplicationFormModal({
                   <option key={status} value={status} />
                 ))}
               </datalist>
+            </label>
+          </div>
+
+          <div className="grid gap-4 sm:grid-cols-2">
+            <label className="field label">
+              Job posting URL
+              <input
+                type="url"
+                className="input"
+                placeholder="https://"
+                value={form.job_url ?? ''}
+                onChange={(e) => setForm({ ...form, job_url: e.target.value })}
+              />
+            </label>
+            <label className="field label">
+              Location
+              <input
+                className="input"
+                value={form.location ?? ''}
+                onChange={(e) => setForm({ ...form, location: e.target.value })}
+              />
             </label>
           </div>
 

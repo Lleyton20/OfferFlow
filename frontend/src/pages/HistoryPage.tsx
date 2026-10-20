@@ -89,6 +89,20 @@ function HistoryRow({
             className="overflow-hidden"
           >
             <div className="space-y-6 border-t border-line px-4 py-5">
+              {(application.job_url || application.location) && (
+                <div className="flex flex-wrap gap-x-4 gap-y-1 text-sm">
+                  {application.location && <span className="text-ink-soft">{application.location}</span>}
+                  {application.job_url && (
+                    <a href={application.job_url} target="_blank" rel="noreferrer" className="link">
+                      View job posting ↗
+                    </a>
+                  )}
+                  {application.source !== 'manual' && (
+                    <span className="text-muted">Captured automatically from {application.source}</span>
+                  )}
+                </div>
+              )}
+
               {application.job_description && (
                 <div>
                   <h4 className="eyebrow mb-1.5">

@@ -30,6 +30,9 @@ export interface Application {
   weaknesses: string[]
   notes: string | null
   resume_id: number | null
+  job_url: string | null
+  location: string | null
+  source: string
   created_at: string
   updated_at: string
   status_history: StatusEvent[]
@@ -48,4 +51,6 @@ export interface ApplicationInput {
   weaknesses: string[]
   notes: string | null
   resume_id: number | null
+  job_url: string | null
+  location: string | null
 }
