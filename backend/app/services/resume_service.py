@@ -174,7 +174,9 @@ def save_upload(user_id: int, filename: str, content: bytes) -> str:
 
 
 def delete_file(storage_path: str) -> None:
-    Path(storage_path).unlink(missing_ok=True)
+    # Path("") is the current directory; seeded demo resumes have no file at all.
+    if storage_path:
+        Path(storage_path).unlink(missing_ok=True)
 
 
 def list_resumes(db: Session, user_id: int) -> list[Resume]:

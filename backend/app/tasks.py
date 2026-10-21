@@ -14,12 +14,13 @@ def main(argv: list[str]) -> int:
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
 
     from app.database import SessionLocal
-    from app.services import job_service
+    from app.services import demo_service, job_service
 
     command = argv[1] if len(argv) > 1 else ""
     with SessionLocal() as db:
         if command == "refresh":
             result = asdict(job_service.refresh_jobs(db))
+            result["demo_accounts_purged"] = demo_service.purge_expired_demos(db)
         elif command == "digest":
             app_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
             result = asdict(job_service.send_digests(db, app_url))

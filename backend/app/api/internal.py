@@ -12,7 +12,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.services import job_service
+from app.services import demo_service, job_service
 
 router = APIRouter(prefix="/internal", tags=["internal"], include_in_schema=False)
 
@@ -27,7 +27,9 @@ def require_cron_secret(x_cron_secret: str | None = Header(default=None)) -> Non
 
 @router.post("/jobs/refresh", dependencies=[Depends(require_cron_secret)])
 def refresh_jobs(db: Session = Depends(get_db)):
-    return asdict(job_service.refresh_jobs(db))
+    result = asdict(job_service.refresh_jobs(db))
+    result["demo_accounts_purged"] = demo_service.purge_expired_demos(db)
+    return result
 
 
 @router.post("/digests/send", dependencies=[Depends(require_cron_secret)])

@@ -1,12 +1,13 @@
 import os
 from typing import Literal
 
-from fastapi import APIRouter, Depends, HTTPException, Response
+from fastapi import APIRouter, Depends, HTTPException, Request, Response
 from sqlalchemy.orm import Session
 
 from app.api.deps import COOKIE_NAME, get_current_user
 from app.database import get_db
 from app.models.user import User
+from app.rate_limit import RateLimiter, client_ip
 from app.schemas.job import JobPreferences
 from app.schemas.user import (
     ForgotPasswordRequest,
@@ -15,7 +16,7 @@ from app.schemas.user import (
     UserLogin,
     UserRead,
 )
-from app.services import email_service
+from app.services import demo_service, email_service
 from app.services.auth_service import (
     JWT_EXPIRE_MINUTES,
     authenticate_user,
@@ -61,6 +62,19 @@ def register(data: UserCreate, response: Response, db: Session = Depends(get_db)
     if get_user_by_email(db, data.email) is not None:
         raise HTTPException(status_code=400, detail="Email already registered")
     user = register_user(db, data)
+    _set_session_cookie(response, user.id)
+    return user
+
+
+# Each demo seeds a few dozen rows, so keep one visitor from creating hundreds.
+demo_limiter = RateLimiter(limit=5, window_seconds=3600)
+
+
+@router.post("/demo", response_model=UserRead, status_code=201)
+def start_demo(request: Request, response: Response, db: Session = Depends(get_db)):
+    demo_limiter.check(client_ip(request))
+    demo_service.purge_expired_demos(db)
+    user = demo_service.create_demo_user(db)
     _set_session_cookie(response, user.id)
     return user
 
