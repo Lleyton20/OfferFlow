@@ -12,8 +12,8 @@ from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
 
-from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session, defer
 
 from app.models.application import Application
 from app.models.job import JobInteraction, JobPosting
@@ -317,24 +317,68 @@ def build_profile(db: Session, user: User) -> Profile:
     )
 
 
-def score_job(job: JobPosting, profile: Profile, now: datetime) -> tuple[float, list[str]]:
+@dataclass(frozen=True)
+class JobFeatures:
+    """What scoring needs from a posting, extracted once and cached until it changes."""
+
+    version: datetime
+    haystack: str
+    role_words: frozenset[str]
+    skills: frozenset[str]
+
+
+# Postings change only on refresh (every 6 hours), so extracting skills from each
+# description on every request is wasted work. Keyed by id, invalidated by last_seen_at.
+_features: dict[int, JobFeatures] = {}
+
+
+def extract_features(
+    title: str, category: str | None, description: str | None, version: datetime
+) -> JobFeatures:
+    haystack = " ".join(filter(None, [title, category, description]))
+    return JobFeatures(
+        version=version,
+        haystack=haystack.lower(),
+        role_words=frozenset(_role_words(title)),
+        skills=frozenset(_skills_in(haystack)),
+    )
+
+
+def _features_for(db: Session, jobs: list[JobPosting]) -> dict[int, JobFeatures]:
+    missing = [j for j in jobs if (f := _features.get(j.id)) is None or f.version != j.last_seen_at]
+    if missing:
+        # Descriptions are the bulk of each row, so they're only fetched for postings
+        # this process hasn't seen yet.
+        rows = db.execute(
+            select(JobPosting.id, JobPosting.description).where(
+                JobPosting.id.in_([j.id for j in missing])
+            )
+        )
+        descriptions = {job_id: description for job_id, description in rows}
+        for job in missing:
+            _features[job.id] = extract_features(
+                job.title, job.category, descriptions.get(job.id), job.last_seen_at
+            )
+    return {j.id: _features[j.id] for j in jobs}
+
+
+def score_job(
+    job: JobPosting, features: JobFeatures, profile: Profile, now: datetime
+) -> tuple[float, list[str]]:
     reasons: list[str] = []
     score = 0.0
-    title = job.title.lower()
-    haystack = " ".join(filter(None, [job.title, job.category, job.description]))
 
-    keyword_hits = sorted(k for k in profile.keywords if k in haystack.lower())
+    keyword_hits = sorted(k for k in profile.keywords if k in features.haystack)
     if keyword_hits:
         score += 4 * len(keyword_hits)
         reasons.append(f"Matches your interest in {', '.join(keyword_hits[:3])}")
 
-    title_words = _role_words(title)
-    overlap = {w for w in title_words if profile.role_words[w]}
+    overlap = {w for w in features.role_words if profile.role_words[w]}
     if overlap:
         score += sum(min(profile.role_words[w], 3) for w in overlap)
         reasons.append("Similar to roles you've applied to")
 
-    skill_hits = sorted(profile.skills & _skills_in(haystack))
+    skill_hits = sorted(profile.skills & features.skills)
     if skill_hits:
         score += 1.5 * min(len(skill_hits), 6)
         reasons.append(f"Uses {', '.join(skill_hits[:4])}")
@@ -367,15 +411,21 @@ def recommend(
         i.job_id: i.state
         for i in db.scalars(select(JobInteraction).where(JobInteraction.user_id == user.id))
     }
-    stmt = select(JobPosting).where(
-        JobPosting.is_active.is_(True),
-        JobPosting.job_type.in_(types),
-        JobPosting.first_seen_at >= (since or now - RECOMMENDATION_WINDOW),
+    stmt = (
+        select(JobPosting)
+        .options(defer(JobPosting.description))
+        .where(
+            JobPosting.is_active.is_(True),
+            JobPosting.job_type.in_(types),
+            JobPosting.first_seen_at >= (since or now - RECOMMENDATION_WINDOW),
+        )
     )
+    jobs = list(db.scalars(stmt))
+    features = _features_for(db, jobs)
 
     has_signal = bool(profile.keywords or profile.skills or profile.role_words)
     ranked: list[Recommendation] = []
-    for job in db.scalars(stmt):
+    for job in jobs:
         if interactions.get(job.id) in ("dismissed", "applied"):
             continue
         if (
@@ -383,7 +433,7 @@ def recommend(
             or (job.company.lower(), job.title.lower()) in profile.applied
         ):
             continue
-        score, reasons = score_job(job, profile, now)
+        score, reasons = score_job(job, features[job.id], profile, now)
         # With nothing to personalize on yet, recency alone ranks a useful starter list.
         if has_signal and score < 3:
             continue
@@ -439,18 +489,24 @@ def set_interaction(db: Session, user_id: int, job_id: int, state: str | None) -
 
 
 def discovery_stats(db: Session) -> dict:
-    now = datetime.now(timezone.utc)
-    active = list(db.scalars(select(JobPosting).where(JobPosting.is_active.is_(True))))
-    week_ago = now - timedelta(days=7)
-
-    def _aware(value: datetime) -> datetime:
-        return value if value.tzinfo else value.replace(tzinfo=timezone.utc)
-
-    last_seen = max((_aware(j.last_seen_at) for j in active), default=None)
+    active = JobPosting.is_active.is_(True)
+    week_ago = datetime.now(timezone.utc) - timedelta(days=7)
+    rows = db.execute(
+        select(JobPosting.job_type, func.count()).where(active).group_by(JobPosting.job_type)
+    )
+    by_type = {job_type: count for job_type, count in rows}
+    new_this_week = db.scalar(
+        select(func.count())
+        .select_from(JobPosting)
+        .where(active, JobPosting.first_seen_at >= week_ago)
+    )
+    last_seen = db.scalar(select(func.max(JobPosting.last_seen_at)).where(active))
+    if last_seen is not None and last_seen.tzinfo is None:
+        last_seen = last_seen.replace(tzinfo=timezone.utc)
     return {
-        "active": len(active),
-        "new_this_week": sum(1 for j in active if _aware(j.first_seen_at) >= week_ago),
-        "by_type": dict(Counter(j.job_type for j in active)),
+        "active": sum(by_type.values()),
+        "new_this_week": new_this_week or 0,
+        "by_type": by_type,
         "last_refreshed_at": last_seen,
     }
 

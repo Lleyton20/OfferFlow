@@ -415,3 +415,24 @@ def test_overlapping_refreshes_are_skipped(client, cron, with_sources):
         assert "already running" in result["sources"]["skipped"]
     finally:
         job_service._refresh_lock.release()
+
+
+def test_cached_job_features_refresh_when_a_posting_changes(auth_client, cron, with_sources):
+    auth_client.patch("/auth/me/preferences", json={"job_keywords": ["software", "rust"]})
+    with_sources(
+        _source(
+            "greenhouse:acme", [_raw("acme:1", "Software Engineer Intern", description="Python.")]
+        )
+    )
+    _refresh(auth_client, cron)
+    assert not any("rust" in r for r in _recommendations(auth_client)[0]["reasons"])
+
+    with_sources(
+        _source(
+            "greenhouse:acme",
+            [_raw("acme:1", "Software Engineer Intern", description="Rust services.")],
+        )
+    )
+    _refresh(auth_client, cron)
+    reasons = _recommendations(auth_client)[0]["reasons"]
+    assert any("rust" in r for r in reasons)
