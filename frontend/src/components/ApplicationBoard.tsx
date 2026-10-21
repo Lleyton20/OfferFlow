@@ -110,8 +110,8 @@ export function ApplicationBoard({
                       </div>
                     </div>
 
-                    <div className="mt-2.5 flex items-center gap-1.5 text-xs text-muted">
-                      <span>Applied {formatDate(application.date_applied)}</span>
+                    <div className="mt-2.5 flex min-w-0 items-center gap-1.5 text-xs text-muted">
+                      <span className="shrink-0 whitespace-nowrap">Applied {formatDate(application.date_applied)}</span>
                       {resume && (
                         <>
                           <span aria-hidden="true">·</span>

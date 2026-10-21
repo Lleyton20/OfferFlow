@@ -1,6 +1,7 @@
 import { useMutation } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useState, type ReactNode } from 'react'
+import { ApiError } from '../api/client'
 import { tailorResume } from '../api/resumes'
 import type { Resume } from '../types/resume'
 import { LoadingSpinner } from './LoadingSpinner'
@@ -158,6 +159,11 @@ export function ResumeCard({ resume, onDelete, index = 0 }: ResumeCardProps) {
                     backend to enable it.
                   </p>
                 )}
+                {resume.ai_feedback_status === 'requires_account' && (
+                  <p className="text-sm text-muted">
+                    AI feedback is available with a free account. The ATS checks above work in the demo.
+                  </p>
+                )}
                 {resume.ai_feedback_status === 'error' && (
                   <p className="text-sm text-muted">AI feedback was temporarily unavailable for this upload.</p>
                 )}
@@ -183,6 +189,14 @@ export function ResumeCard({ resume, onDelete, index = 0 }: ResumeCardProps) {
                     </button>
                   </div>
                 </Section>
+
+                {tailorMutation.error && (
+                  <p className="mt-3 text-sm text-muted">
+                    {tailorMutation.error instanceof ApiError
+                      ? tailorMutation.error.message
+                      : 'Tailoring was temporarily unavailable. Try again.'}
+                  </p>
+                )}
 
                 {tailorMutation.isPending && (
                   <div className="mt-3">

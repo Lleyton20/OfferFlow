@@ -2,9 +2,11 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 import { AnimatePresence, motion } from 'motion/react'
 import { useEffect, useRef, useState, type FormEvent } from 'react'
 import { clearChatMessages, getChatMessages, sendChatMessage } from '../api/assistant'
+import { ApiError } from '../api/client'
 import { AppHeader } from '../components/AppHeader'
 import { LoadingSpinner } from '../components/LoadingSpinner'
 import { PageHeader } from '../components/PageHeader'
+import { useToast } from '../components/useToast'
 
 const SUGGESTIONS = [
   'What should I follow up on this week?',
@@ -14,6 +16,7 @@ const SUGGESTIONS = [
 
 export function AssistantPage() {
   const queryClient = useQueryClient()
+  const toast = useToast()
   const [draft, setDraft] = useState('')
   const scrollRef = useRef<HTMLDivElement>(null)
 
@@ -25,6 +28,11 @@ export function AssistantPage() {
   const sendMutation = useMutation({
     mutationFn: sendChatMessage,
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ['assistant'] }),
+    onError: (error) => {
+      // The user's message was saved before the reply failed; show it in the thread.
+      queryClient.invalidateQueries({ queryKey: ['assistant'] })
+      toast.show(error instanceof ApiError ? error.message : "Couldn't reach the assistant", 'error')
+    },
   })
 
   const clearMutation = useMutation({

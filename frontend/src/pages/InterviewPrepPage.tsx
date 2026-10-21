@@ -9,6 +9,7 @@ import {
   getInterviewSessions,
   updateInterviewSession,
 } from '../api/interviews'
+import { ApiError } from '../api/client'
 import { AppHeader } from '../components/AppHeader'
 import { EmptyState } from '../components/EmptyState'
 import { InterviewFormModal } from '../components/InterviewFormModal'
@@ -119,6 +120,8 @@ export function InterviewPrepPage() {
     onMutate: (id) => setGeneratingId(id),
     onSettled: () => setGeneratingId(null),
     onSuccess: invalidate,
+    onError: (error) =>
+      toast.show(error instanceof ApiError ? error.message : "Couldn't generate questions", 'error'),
   })
 
   function handleSubmit(data: InterviewSessionInput) {
