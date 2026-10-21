@@ -34,3 +34,13 @@ def get_current_user(
         raise HTTPException(status_code=401, detail="Invalid or expired session")
 
     return user
+
+
+def get_full_account(current_user: User = Depends(get_current_user)) -> User:
+    """For features that cost money per call (the AI ones): not available in demo accounts."""
+    if current_user.is_demo:
+        raise HTTPException(
+            status_code=403,
+            detail="AI features are available with a free account. Sign up to try them on your own data.",
+        )
+    return current_user

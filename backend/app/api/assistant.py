@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_full_account
 from app.database import get_db
 from app.models.user import User
 from app.schemas.chat import ChatMessageCreate, ChatMessageRead
@@ -19,7 +19,7 @@ def get_messages(db: Session = Depends(get_db), current_user: User = Depends(get
 def send_message(
     data: ChatMessageCreate,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_full_account),
 ):
     assistant_service.add_message(db, current_user.id, "user", data.content)
 

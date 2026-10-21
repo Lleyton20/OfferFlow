@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, File, Form, HTTPException, UploadFile
 from sqlalchemy.orm import Session
 
-from app.api.deps import get_current_user
+from app.api.deps import get_current_user, get_full_account
 from app.database import get_db
 from app.models.user import User
 from app.schemas.resume import ResumeRead, TailorRequest, TailorResponse
@@ -46,9 +46,12 @@ async def upload_resume(
     ats_score, ats_checks, matched_keywords, missing_keywords = resume_service.score_resume(
         extracted_text, job_description
     )
-    ai_feedback, ai_feedback_status = ai_feedback_service.get_ai_feedback(
-        extracted_text, job_description
-    )
+    if current_user.is_demo:
+        ai_feedback, ai_feedback_status = None, "requires_account"
+    else:
+        ai_feedback, ai_feedback_status = ai_feedback_service.get_ai_feedback(
+            extracted_text, job_description
+        )
 
     filename = file.filename or "resume"
     storage_path = resume_service.save_upload(current_user.id, filename, content)
@@ -94,7 +97,7 @@ def tailor_resume(
     resume_id: int,
     data: TailorRequest,
     db: Session = Depends(get_db),
-    current_user: User = Depends(get_current_user),
+    current_user: User = Depends(get_full_account),
 ):
     resume = _get_resume_or_404(db, current_user.id, resume_id)
     suggestions, status = ai_feedback_service.get_tailoring_suggestions(
