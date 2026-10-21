@@ -11,7 +11,7 @@ export interface AIFeedback {
   suggestions: string[]
 }
 
-export type AIFeedbackStatus = 'ok' | 'not_configured' | 'error'
+export type AIFeedbackStatus = 'ok' | 'not_configured' | 'error' | 'requires_account'
 
 export interface TailoringSuggestions {
   summary_rewrite: string

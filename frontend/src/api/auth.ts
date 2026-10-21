@@ -23,6 +23,10 @@ export function login(data: Credentials): Promise<User> {
   return apiFetch('/auth/login', { method: 'POST', body: JSON.stringify(data) })
 }
 
+export function startDemo(): Promise<User> {
+  return apiFetch('/auth/demo', { method: 'POST' })
+}
+
 export function logout(): Promise<void> {
   return apiFetch('/auth/logout', { method: 'POST' })
 }

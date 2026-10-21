@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query'
 import { useEffect, useState, type ReactNode } from 'react'
 import * as authApi from '../api/auth'
 import type { RegisterData } from '../api/auth'
@@ -21,21 +22,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .finally(() => setIsLoading(false))
   }, [])
 
+  const queryClient = useQueryClient()
+
+  // Cached queries belong to whoever was signed in; never show them to the next account.
+  function switchUser(next: User | null) {
+    queryClient.clear()
+    setUser(next)
+  }
+
   async function login(email: string, password: string) {
-    setUser(await authApi.login({ email, password }))
+    switchUser(await authApi.login({ email, password }))
   }
 
   async function register(data: RegisterData) {
-    setUser(await authApi.register(data))
+    switchUser(await authApi.register(data))
+  }
+
+  async function startDemo() {
+    switchUser(await authApi.startDemo())
   }
 
   async function logout() {
     await authApi.logout()
-    setUser(null)
+    switchUser(null)
   }
 
   return (
-    <AuthContext.Provider value={{ user, isLoading, login, register, logout, setUser }}>
+    <AuthContext.Provider value={{ user, isLoading, login, register, logout, startDemo, setUser }}>
       {children}
     </AuthContext.Provider>
   )

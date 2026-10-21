@@ -7,5 +7,6 @@ export interface User {
   grad_year: number | null
   job_keywords: string[]
   digest_enabled: boolean
+  is_demo: boolean
   created_at: string
 }
