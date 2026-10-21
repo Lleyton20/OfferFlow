@@ -2,6 +2,7 @@ import { useState, type FormEvent } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { ApiError } from '../api/client'
 import { AuthLayout } from '../components/AuthLayout'
+import { DemoButton } from '../components/DemoButton'
 import { FormError } from '../components/FormError'
 import { useAuth } from '../context/useAuth'
 
@@ -75,6 +76,13 @@ export function LoginPage() {
           {isSubmitting ? 'Signing in…' : 'Sign in'}
         </button>
       </form>
+
+      <div className="my-5 flex items-center gap-3 text-xs text-muted">
+        <span className="h-px flex-1 bg-line" />
+        or
+        <span className="h-px flex-1 bg-line" />
+      </div>
+      <DemoButton className="btn btn-secondary btn-lg w-full" label="Explore the demo, no sign-up" />
     </AuthLayout>
   )
 }

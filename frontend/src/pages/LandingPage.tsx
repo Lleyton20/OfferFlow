@@ -2,6 +2,7 @@ import { AnimatePresence, motion, useScroll, useTransform } from 'motion/react'
 import { useEffect, useRef, useState, type ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 import { AnimatedNumber } from '../components/AnimatedNumber'
+import { DemoButton } from '../components/DemoButton'
 import { Logo, LogoMark } from '../components/Logo'
 import { STATUS_COLORS } from '../lib/statusColors'
 import { APPLICATION_STATUSES } from '../types/application'
@@ -551,10 +552,16 @@ export function LandingPage() {
                   →
                 </span>
               </Link>
-              <Link to="/login" className="btn btn-secondary btn-lg">
-                Sign in
-              </Link>
+              <DemoButton />
             </motion.div>
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ duration: 0.6, delay: 0.8 }}
+              className="mt-3 text-xs text-muted"
+            >
+              No sign-up needed for the demo. It comes pre-filled with a sample search.
+            </motion.p>
 
             <motion.div
               initial={{ opacity: 0, y: 40 }}
@@ -677,15 +684,21 @@ export function LandingPage() {
             <p className="relative mx-auto mt-4 max-w-md text-base text-brand-100">
               Free for students. Set up in under a minute.
             </p>
-            <Link
-              to="/register"
-              className="btn btn-lg group relative mt-8 bg-white text-brand-900 shadow-xs hover:bg-brand-50"
-            >
-              Start tracking for free
-              <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">
-                →
-              </span>
-            </Link>
+            <div className="relative mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/register"
+                className="btn btn-lg group bg-white text-brand-900 shadow-xs hover:bg-brand-50"
+              >
+                Start tracking for free
+                <span className="transition-transform duration-200 group-hover:translate-x-0.5" aria-hidden="true">
+                  →
+                </span>
+              </Link>
+              <DemoButton
+                label="Explore the demo"
+                className="btn btn-lg border border-white/25 text-white hover:bg-white/10"
+              />
+            </div>
           </motion.div>
         </section>
       </main>
