@@ -120,7 +120,7 @@ export function SettingsPage() {
             <dl className="grid gap-4 text-sm sm:grid-cols-2">
               {[
                 ['Name', user?.full_name],
-                ['Email', user?.email],
+                ['Email', user?.is_demo ? 'Demo account' : user?.email],
                 ['University', user?.university ?? 'Not set'],
                 ['Graduation year', user?.grad_year ?? 'Not set'],
               ].map(([label, value]) => (
@@ -218,7 +218,9 @@ export function SettingsPage() {
             <div className="flex items-center justify-between gap-4">
               <div>
                 <p className="text-sm font-medium text-ink">Email me new matches</p>
-                <p className="text-xs text-muted">Sent to {user?.email}</p>
+                <p className="text-xs text-muted">
+                  {user?.is_demo ? 'Not sent for demo accounts' : `Sent to ${user?.email}`}
+                </p>
               </div>
               <Switch
                 checked={user?.digest_enabled ?? true}
