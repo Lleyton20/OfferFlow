@@ -26,5 +26,6 @@ class User(Base):
     )
     job_keywords: Mapped[list[str]] = mapped_column(JSON, nullable=False, default=list)
     digest_enabled: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    is_demo: Mapped[bool] = mapped_column(Boolean, nullable=False, default=False, index=True)
     last_digest_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_utcnow)

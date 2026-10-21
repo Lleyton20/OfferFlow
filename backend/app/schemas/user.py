@@ -65,4 +65,5 @@ class UserRead(BaseModel):
     grad_year: int | None
     job_keywords: list[str]
     digest_enabled: bool
+    is_demo: bool
     created_at: datetime
