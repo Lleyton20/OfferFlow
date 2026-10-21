@@ -370,3 +370,48 @@ def test_digest_emails_new_matches_once(auth_client, cron, with_sources, monkeyp
 def test_users_can_opt_out_of_digests(auth_client):
     response = auth_client.patch("/auth/me/preferences", json={"digest_enabled": False})
     assert response.json()["digest_enabled"] is False
+
+
+# --- Background refresh --------------------------------------------------------
+
+
+def test_background_refresh_defaults_on_only_in_production(monkeypatch):
+    from app.services import job_scheduler
+
+    monkeypatch.delenv("AUTO_REFRESH_JOBS", raising=False)
+    monkeypatch.delenv("ENV", raising=False)
+    assert job_scheduler.is_enabled() is False
+    assert job_scheduler.start(lambda: None) is None
+    monkeypatch.setenv("ENV", "production")
+    assert job_scheduler.is_enabled() is True
+    monkeypatch.setenv("AUTO_REFRESH_JOBS", "false")
+    assert job_scheduler.is_enabled() is False
+
+
+def test_refresh_if_stale_runs_on_an_empty_database_then_waits(client, with_sources):
+    from app.database import get_db
+    from app.main import app
+    from app.services import job_scheduler
+
+    def session_factory():
+        return next(app.dependency_overrides[get_db]())
+
+    with_sources(_source("greenhouse:acme", [_raw("acme:1", "SWE Intern")]))
+    assert job_scheduler.refresh_if_stale(session_factory) is True
+    # Fresh data: nothing to do until it's six hours old.
+    assert job_scheduler.refresh_if_stale(session_factory) is False
+    later = datetime.now(timezone.utc) + job_scheduler.STALE_AFTER + timedelta(minutes=1)
+    assert job_scheduler.refresh_if_stale(session_factory, now=later) is True
+
+
+def test_overlapping_refreshes_are_skipped(client, cron, with_sources):
+    from app.services import job_service
+
+    with_sources(_source("greenhouse:acme", [_raw("acme:1", "SWE Intern")]))
+    assert job_service._refresh_lock.acquire(blocking=False)
+    try:
+        result = client.post("/internal/jobs/refresh", headers=cron).json()
+        assert result["added"] == 0
+        assert "already running" in result["sources"]["skipped"]
+    finally:
+        job_service._refresh_lock.release()

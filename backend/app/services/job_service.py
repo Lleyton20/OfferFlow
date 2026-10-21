@@ -7,6 +7,7 @@ posting was suggested and the ranking is cheap enough to compute per request.
 
 import logging
 import re
+import threading
 from collections import Counter
 from dataclasses import dataclass, field
 from datetime import date, datetime, timedelta, timezone
@@ -236,8 +237,24 @@ def _store(
     return len(seen)
 
 
+_refresh_lock = threading.Lock()
+
+
 def refresh_jobs(db: Session, sources: list[job_sources.SourceFetch] | None = None) -> RefreshStats:
-    """Pulls every configured source. One failing source never aborts the others."""
+    """Pulls every configured source. One failing source never aborts the others.
+
+    Only one refresh runs at a time: the background loop and the scheduled endpoint
+    can both trigger one, and two at once would race on inserting the same postings.
+    """
+    if not _refresh_lock.acquire(blocking=False):
+        return RefreshStats(sources={"skipped": "a refresh is already running"})
+    try:
+        return _refresh(db, sources)
+    finally:
+        _refresh_lock.release()
+
+
+def _refresh(db: Session, sources: list[job_sources.SourceFetch] | None) -> RefreshStats:
     stats = RefreshStats()
     now = datetime.now(timezone.utc)
     with job_sources.http_client() as client:

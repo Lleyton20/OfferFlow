@@ -1,3 +1,4 @@
+import logging
 import os
 from contextlib import asynccontextmanager
 
@@ -14,13 +15,22 @@ from app.api.interviews import router as interviews_router
 from app.api.jobs import router as jobs_router
 from app.api.resumes import router as resumes_router
 from app.api.tokens import router as tokens_router
-from app.database import Base, engine
+from app.database import Base, SessionLocal, engine
+from app.services import job_scheduler
+
+# Uvicorn only configures its own loggers; without this, app-level INFO logs (such as
+# job refresh results) never reach the platform's log stream.
+logging.basicConfig(level=logging.INFO, format="%(levelname)s %(name)s: %(message)s")
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     Base.metadata.create_all(bind=engine)
+    stop_refresh = job_scheduler.start(SessionLocal)
     yield
+    if stop_refresh is not None:
+        stop_refresh.set()
 
 
 app = FastAPI(title="OfferFlow API", lifespan=lifespan)
